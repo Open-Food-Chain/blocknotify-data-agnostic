@@ -1,0 +1,3 @@
+[submodule "komodo-py"]
+	path = komodo-py
+	url = https://github.com/Diesmaster/komodo-py
