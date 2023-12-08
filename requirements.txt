@@ -3,7 +3,6 @@ charset-normalizer==2.0.12
 ecdsa==0.18.0
 ECPy==1.2.5
 idna==3.6
-pkg-resources==0.0.0
 pyblake2==1.1.2
 requests==2.27.1
 six==1.16.0
