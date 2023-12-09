@@ -66,32 +66,70 @@ class WalletManager:
 		new_wallet = WalletInterface("https://ofcmvp.explorer.batch.events/", new_seed)
 		return new_wallet.get_address()
 
-	def fund_offline_wallets(self):
+	def _fund_offline_wallets(self):
+		# Original implementation of fund_offline_wallets
 		to_addrs = []
-		amounts  = [] 
+		amounts = []
 
 		for key in self.key_wallets:
-			if ( len(self.key_wallets[key].get_utxos()) < 10):
+			if len(self.key_wallets[key].get_utxos()) < 10:
 				to_addrs.append(self.key_wallets[key].get_address())
 				amounts.append(100)
 
-
-		if (len(to_addrs) != 0):
+		if len(to_addrs) != 0:
 			txid = self.org_wal.send_tx_force(to_addrs, amounts)["txid"]
 			return txid
 
 		return "fully funded"
 
+	def fund_offline_wallets(self):
+		# Pre-processing or additional checks
+		print("Starting the process to fund offline wallets.")
+
+		# Call the original (now renamed) _fund_offline_wallets method
+		result = self._fund_offline_wallets()
+
+		# Post-processing or additional actions
+		if result == "fully funded":
+			return "All wallets are fully funded."
+		else:
+			return f"Transaction ID of funding: {result}"
+
+		return result
+
+
 	def send_batch_transaction(self, tx_obj, batch_value):
+		print(tx_obj)
+
+		# Preprocessing: Remove keys with value 0
+		tx_obj = {k: v for k, v in tx_obj.items() if v != [0]}
+
+		print(tx_obj)
+
+		# Call the original send_batch_transaction logic
+		tx_ids = self._send_batch_transaction(tx_obj, batch_value)
+
+		# Postprocessing: Check if any of the returned keys have None as value
+		if any(value is None for value in tx_ids.values()):
+			self.fund_offline_wallets()
+			print(tx_ids)
+			return "Error: Not enought utxos, funding already activated, please wait"
+
+		return tx_ids
+
+
+
+	def _send_batch_transaction(self, tx_obj, batch_value):
 		to_addr = self.create_batch_address(batch_value)
-		tx_ids = {}
+		tx_ids = {"unique-addr":to_addr}
 
 		for key in self.key_wallets:
 			send_addrs = []
 			send_amounts = []
 			
 			try:
-				send_amounts = tx_obj[key]
+				if key in tx_obj:
+					send_amounts = tx_obj[key]
 			except ValueError:
 				print("obj not complete")
 				return "obj not complete"

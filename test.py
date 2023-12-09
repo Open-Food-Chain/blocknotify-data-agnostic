@@ -7,8 +7,9 @@ import ecdsa
 
 from wallet_manager import WalManInterface
 from object_parser import ObjectParser
+from import_manager import ImportManInterface
 
-wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
+#wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
 #print(wal_in.send_tx_force( ["RA6kFZkA3oVrQjPGbuoxmZDaHvMp9sMhgg", "RFuBZNJCWiwW7a7TradLPLvwymooPRzsGR"], [1, 1] ))
 
 test_batch = {
@@ -33,18 +34,72 @@ test_batch = {
     "percentage": None
 }
 
+def get_wals(import_manager, wal_in):
+    first_items = import_manager.get_first_items()
+    to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
+    all_wall_man = {}
 
-to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp" ]
+    for collection_name, test_batch in first_items.items():
+        if isinstance(test_batch, dict):  # Ensure that test_batch is a dictionary
+            all_wall_man[collection_name] = WalManInterface(wal_in, test_batch, to_remove)
 
-walManIn = WalManInterface(wal_in, test_batch, to_remove)
+    return all_wall_man
 
-obj_parser = ObjectParser()
 
-tx_obj = obj_parser.parse_obj(test_batch)
-print(tx_obj)
+def init_blocknotify(explorer_url, seed, backend_url, backend_port, collection_names):
+    wal_in = WalletInterface(explorer_url, seed)
+    import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])    
+    all_wall_man = get_wals(import_man_interface, wal_in)
 
-ret = walManIn.send_batch_transaction(tx_obj, test_batch["bnfp"])
-print(ret)
+    return wal_in, import_man_interface, all_wall_man
+
+def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
+    items_without_integrity = import_man_interface.get_imports_without_integrity()
+    obj_parser = ObjectParser()
+
+    for collection_name, items in items_without_integrity.items():
+        wal_man = all_wall_man[collection_name]
+        for item in items:
+            tx_obj, unique_attribute = obj_parser.parse_obj(item)
+            ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
+            
+            if (isinstance(ret, str )):
+                print(ret)
+                return ret
+
+            update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
+            print(update_integrity)
+
+    return "sucses"
+
+
+
+
+wal_in, import_man_interface, all_wall_man = init_blocknotify("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish", "127.0.0.1", 5000, ["batch"])
+
+#print(wal_in.get_address())
+
+#ret = all_wall_man["batch"].fund_offline_wallets()
+#print(ret)
+
+main_loop_blocknotify(wal_in, import_man_interface, all_wall_man)
+
+
+"""import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])
+all_imports_without_integrity = import_man_interface.get_imports_without_integrity()
+print(all_imports_without_integrity)"""
+
+#to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp" ]
+
+#walManIn = WalManInterface(wal_in, test_batch, to_remove)
+
+#obj_parser = ObjectParser()
+
+#tx_obj = obj_parser.parse_obj(test_batch)
+#print(tx_obj)
+
+#ret = walManIn.send_batch_transaction(tx_obj, test_batch["bnfp"])
+#print(ret)
 
 #print(walManIn.fund_offline_wallets())
 

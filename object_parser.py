@@ -9,7 +9,12 @@ class ObjectParser:
 		for key in obj:
 			tx_obj[key] = self.get_sat_value(obj[key])
 
-		return tx_obj
+		key_found = self.find_key_with_prefix(obj, 'unique-')
+
+		if key_found == None:
+			return "no unique value provided"
+
+		return tx_obj, key_found
 
 	def is_float_string(self, var_input):
 		try:
@@ -77,7 +82,11 @@ class ObjectParser:
 			while len(str_var) < len(str(max_sats)):
 				str_var = "0" + str_var
 
-			new_str = "0." + new_str
+			if (int(new_str) > 9999 ):
+				new_str = "0." + new_str
+			else:
+				new_str = "1." + new_str
+				print("new str: " + new_str)
 			ret.append(float(new_str))
 
 		return ret
@@ -87,6 +96,12 @@ class ObjectParser:
 		ret = self.int_array_to_satable(ret)
 		ret = self.satable_string_to_sats(ret)
 		return ret
+
+	def find_key_with_prefix(self, dictionary, prefix):
+		for key in dictionary:
+			if key.startswith(prefix):
+				return dictionary[key]
+		return None
 
 	def get_sat_value(self, value):
 		if value is None:
