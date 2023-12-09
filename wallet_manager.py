@@ -4,6 +4,74 @@ from komodo_py.wallet import WalletInterface
 from ecpy.curves     import Curve,Point
 import hashlib
 import ecdsa
+import multiprocessing as mp
+import asyncio
+
+class UtxoManager:
+	def __init__(self, org_wal, key_wallets, min_utxos, min_balance):
+		self.org_wal = org_wal
+		self.wallet_manager = key_wallets
+		self.min_utxos = min_utxos
+		self.funding_coroutine = None
+		self.stop_event = None
+
+
+	async def _fund_offline_wallets(self):
+		# Original implementation of fund_offline_wallets
+		to_addrs = []
+		amounts = []
+
+		for key in self.key_wallets:
+			if len(self.key_wallets[key].get_utxos()) < self.min_utxos:
+				to_addrs.append(self.key_wallets[key].get_address())
+				amounts.append(100)
+
+		if len(to_addrs) != 0:
+			txid = self.org_wal.send_tx_force(to_addrs, amounts)["txid"]
+			return txid
+
+		return "fully funded"
+
+	async def fund_offline_wallets(self):
+		# Pre-processing or additional checks
+		print("Starting the process to fund offline wallets.")
+
+		# Call the original (now renamed) _fund_offline_wallets method
+		result = self._fund_offline_wallets()
+
+		# Post-processing or additional actions
+		if result == "fully funded":
+			return "All wallets are fully funded."
+		else:
+			return f"Transaction ID of funding: {result}"
+
+		return result
+
+	async def start_funding_loop(self):
+		while True:
+			await self.fund_offline_wallets()
+			await asyncio.sleep(60)
+
+	def start_funding(self):
+		pool = mp.Pool(mp.cpu_count())
+
+		# Create a stop event
+		self.stop_event = mp.Event()
+
+		res = pool.apply_async(self.start_funding_loop, (self.stop_event))
+		self.funding_coroutine = pool
+
+
+	def stop_funding(self):
+		if self.funding_coroutine is not None:
+			try:
+				self.stop_event.set()
+
+			finally:
+				self.funding_coroutine.close()
+				self.funding_coroutine.join()
+				self.funding_coroutine = None
+
 
 class WalletManager:
 	def __init__(self, org_wal, batch_obj, keys_to_remove):
@@ -142,7 +210,15 @@ class WalletManager:
 
 		return tx_ids
 
+	def start_utxo_manager(self, min_utxos, min_balance):
+		self.utxo_manager = UtxoManager(self.org_wal, self.key_wallets, min_utxos, min_balance )
+		self.utxo_manager.start_funding()
+		return "sucses"
 
+	def stop_utxo_manager(self):
+		self.utxo_manager.stop_funding()
+		self.utxo_manager = None
+		return "sucses"
 
 class WalManInterface:
 	def __init__(self, org_wal, batch_obj, keys_to_remove):
@@ -153,3 +229,9 @@ class WalManInterface:
 
 	def send_batch_transaction(self, tx_obj, batch_value):
 		return self.wallet_manager.send_batch_transaction(tx_obj, batch_value)
+
+	def start_utxo_manager(self, min_utxos, min_balance):
+		return self.wallet_manager.start_utxo_manager(min_utxos, min_balance)
+
+	def stop_utxo_manager(self):
+		return self.wallet_manager.stop_utxo_manager()

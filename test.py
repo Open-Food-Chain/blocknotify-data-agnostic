@@ -4,6 +4,7 @@ from komodo_py.wallet import WalletInterface
 from ecpy.curves     import Curve,Point
 import hashlib
 import ecdsa
+import time
 
 from wallet_manager import WalManInterface
 from object_parser import ObjectParser
@@ -77,12 +78,20 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
 
 wal_in, import_man_interface, all_wall_man = init_blocknotify("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish", "127.0.0.1", 5000, ["batch"])
 
+ret = all_wall_man['batch'].start_utxo_manager(10, 1000)
+print(ret)
+
+time.sleep(10)
+
+ret = all_wall_man['batch'].stop_utxo_manager()
+print(ret)
+
 #print(wal_in.get_address())
 
 #ret = all_wall_man["batch"].fund_offline_wallets()
 #print(ret)
 
-main_loop_blocknotify(wal_in, import_man_interface, all_wall_man)
+#main_loop_blocknotify(wal_in, import_man_interface, all_wall_man)
 
 
 """import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])
