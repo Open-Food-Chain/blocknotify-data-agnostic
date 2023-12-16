@@ -24,6 +24,7 @@ import_api_port = int(os.getenv('IMPORT_API_PORT'))
 chain_api_host = os.getenv('CHAIN_API_HOST')
 chain_api_port = int(os.getenv('CHAIN_API_PORT'))
 collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a comma-separated list
+print(collections)
 min_utxos = int(os.getenv('MIN_UTXOS'))
 min_balance = int(os.getenv('MIN_BALANCE'))
 
@@ -74,8 +75,8 @@ def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain
     #res = chain_api_manager.check_org(wal_in.get_address())
 
     #if res == True:
-    for name in all_wall_man:
-        all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
+    #for name in all_wall_man:
+    #    all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
 
     return wal_in, import_man_interface, all_wall_man, chain_api_manager
 
@@ -89,19 +90,22 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
     for collection_name, items in items_without_integrity.items():
         wal_man = all_wall_man[collection_name]
         for item in items:
+            print(item)
             tx_obj, unique_attribute = obj_parser.parse_obj(item)
+            print(tx_obj)
+            print(unique_attribute)
             ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
-            
-            if (isinstance(ret, str )):
-                print(ret)
-                return ret
+            print(ret)
+            #if (isinstance(ret, str )):
+            #    print(ret)
+            #    return ret
 
             update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
             #chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
-            print(update_integrity)
+            #print(update_integrity)
 
-    for wal in all_wall_man:
-        wal.stop_utxo_manager()
+    #for wal in all_wall_man:
+        #wal.stop_utxo_manager()
 
     return "sucses"
 
@@ -109,6 +113,10 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
 
 
 wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
+
+#ret = wal_in.send_tx_opreturn(wal_in.get_address(), "7b22")
+#print(ret)
+
 
 #ret = all_wall_man['batch'].start_utxo_manager(min_utxos, min_balance)
 #print(ret)

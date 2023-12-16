@@ -6,6 +6,7 @@ import hashlib
 import ecdsa
 import multiprocessing as mp
 import asyncio
+import re
 
 class UtxoManager:
 	def __init__(self, org_wal, key_wallets, min_utxos, min_balance):
@@ -165,8 +166,38 @@ class WalletManager:
 
 		return result
 
+	def is_hex_string(self, input_string):
+
+		if isinstance(input_string, dict):
+			return False
+		# Define a regular expression pattern for a hexadecimal string
+		hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
+
+		# Use the re.match function to check if the input string matches the pattern
+		if re.match(hex_pattern, input_string):
+			return True
+		else:
+			return False
+
+	def send_batch_transaction_not_flat(self, tx_obj, batch_value):
+		to_addr, to_pub = self.create_batch_address(batch_value)
+		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
+
+		txid = self.org_wal.send_tx_opreturn(to_addr, tx_obj)	
+		tx_ids["txid"] = txid
+
+		return tx_ids
+
 
 	def send_batch_transaction(self, tx_obj, batch_value):
+		hexstring = self.is_hex_string(tx_obj)
+
+		if not hexstring:
+			return self.send_batch_transaction_flat(tx_obj, batch_value)
+
+		return self.send_batch_transaction_not_flat(tx_obj, batch_value)
+
+	def send_batch_transaction_flat(self, tx_obj, batch_value):
 		print(tx_obj)
 
 		# Preprocessing: Remove keys with value 0
@@ -209,6 +240,8 @@ class WalletManager:
 			tx_ids[key] = txid
 
 		return tx_ids
+
+
 
 	def start_utxo_manager(self, min_utxos, min_balance):
 		self.utxo_manager = UtxoManager(self.org_wal, self.key_wallets, min_utxos, min_balance )

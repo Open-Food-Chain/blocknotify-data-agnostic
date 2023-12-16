@@ -1,13 +1,22 @@
 import re
+import json
+import binascii
 from datetime import datetime
 
 class ObjectParser:
 	def parse_obj(self, obj):
 
+		flat = self.is_flat_json(obj)
+
+		print(flat)
+
 		tx_obj = {}
 
-		for key in obj:
-			tx_obj[key] = self.get_sat_value(obj[key])
+		if flat:
+			tx_obj = self.parse_flat(obj)
+
+		else:
+			tx_obj = self.parse_non_flat(obj)
 
 		key_found = self.find_key_with_prefix(obj, 'unique-')
 
@@ -15,6 +24,55 @@ class ObjectParser:
 			return tx_obj, "no unique value provided"
 
 		return tx_obj, key_found
+
+
+	def parse_non_flat(self, obj):
+		"""
+		Convert a non-flat JSON object to a hexadecimal string and back to a string.
+
+		Args:
+		    obj (dict): The non-flat JSON object.
+
+		Returns:
+		    str: The resulting string after conversion.
+		"""
+
+
+		# Convert the JSON object to a string
+		json_str = json.dumps(obj)
+
+		# Convert the string to hexadecimal representation
+		hex_str = binascii.hexlify(json_str.encode()).decode()
+
+		return hex_str
+
+
+	def parse_flat(self, obj):
+		tx_obj = {}
+
+		for key in obj:
+			tx_obj[key] = self.get_sat_value(obj[key])
+
+		return tx_obj
+
+	def is_flat_json(self, json_obj):
+		"""
+		Check if a JSON object is flat (no nested objects or arrays).
+
+		Args:
+		    json_obj (dict): The JSON object to check.
+
+		Returns:
+		    bool: True if the JSON object is flat, False otherwise.
+		"""
+		if not isinstance(json_obj, dict):
+			return False  # Not a dictionary (JSON object)
+
+		for key, value in json_obj.items():
+			if isinstance(value, (dict, list)):
+				return False  # Nested object or array found
+
+		return True
 
 	def is_float_string(self, var_input):
 		try:
