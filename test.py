@@ -9,8 +9,9 @@ import time
 from wallet_manager import WalManInterface
 from object_parser import ObjectParser
 from import_manager import ImportManInterface
+from chain_api_manager import ChainApiInterface
 
-#wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
+wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
 #print(wal_in.send_tx_force( ["RA6kFZkA3oVrQjPGbuoxmZDaHvMp9sMhgg", "RFuBZNJCWiwW7a7TradLPLvwymooPRzsGR"], [1, 1] ))
 
 test_batch = {
@@ -49,10 +50,16 @@ def get_wals(import_manager, wal_in):
 
 def init_blocknotify(explorer_url, seed, backend_url, backend_port, collection_names):
     wal_in = WalletInterface(explorer_url, seed)
-    import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])    
+    import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])  
+    chain_api_manager =   ChainApiInterface("127.0.0.1", 5000)
     all_wall_man = get_wals(import_man_interface, wal_in)
 
-    return wal_in, import_man_interface, all_wall_man
+    res = chain_api_manager.check_org(wal_in.get_address())
+
+    if res == True:
+        return wal_in, import_man_interface, all_wall_man
+
+    return "Org Not Yet Added"
 
 def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
     items_without_integrity = import_man_interface.get_imports_without_integrity()
@@ -69,6 +76,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
                 return ret
 
             update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
+            chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
             print(update_integrity)
 
     return "sucses"
@@ -112,3 +120,6 @@ print(all_imports_without_integrity)"""
 
 #print(walManIn.fund_offline_wallets())
 
+
+
+#print(chain_api_manager.add_batch("RMXqGFHvYf5eRPkhSnLN19bx91qrS8ys9N", "020293989838484848488484849485948594859485948594850948594898498898", wal_in.get_address(), test_batch))

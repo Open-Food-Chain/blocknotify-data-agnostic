@@ -132,7 +132,7 @@ class WalletManager:
 	def create_batch_address(self, batch_value ):
 		new_seed = self.encode_base58(self.get_wallet_address(batch_value))
 		new_wallet = WalletInterface("https://ofcmvp.explorer.batch.events/", new_seed)
-		return new_wallet.get_address()
+		return new_wallet.get_address(), new_wallet.get_public_key()
 
 	def _fund_offline_wallets(self):
 		# Original implementation of fund_offline_wallets
@@ -188,8 +188,8 @@ class WalletManager:
 
 
 	def _send_batch_transaction(self, tx_obj, batch_value):
-		to_addr = self.create_batch_address(batch_value)
-		tx_ids = {"unique-addr":to_addr}
+		to_addr, to_pub = self.create_batch_address(batch_value)
+		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
 
 		for key in self.key_wallets:
 			send_addrs = []
