@@ -12,7 +12,7 @@ class ObjectParser:
 		key_found = self.find_key_with_prefix(obj, 'unique-')
 
 		if key_found == None:
-			return "no unique value provided"
+			return tx_obj, "no unique value provided"
 
 		return tx_obj, key_found
 
@@ -112,8 +112,8 @@ class ObjectParser:
 		if cat == 0:  # Integer
 			if (isinstance(value, str)):
 				value = float(value)
-			length = len(str(value))
-			if length < 4:
+
+			if value < 10000:
 				value *= 1000
 			value /= 100000000
 			return [value]

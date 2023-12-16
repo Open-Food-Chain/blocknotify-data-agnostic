@@ -67,18 +67,22 @@ def get_wals(import_manager, wal_in):
 
 def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain_api_host, chain_api_port, collection_names):
     wal_in = WalletInterface(explorer_url, seed)
-    import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])  
-    chain_api_manager =   ChainApiInterface("127.0.0.1", 5000)
+    import_man_interface = ImportManInterface(import_api_host, import_api_port, collection_names)  
+    chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
     all_wall_man = get_wals(import_man_interface, wal_in)
 
-    res = chain_api_manager.check_org(wal_in.get_address())
+    #res = chain_api_manager.check_org(wal_in.get_address())
 
-    if res == True:
-        return wal_in, import_man_interface, all_wall_man
+    #if res == True:
+    for name in all_wall_man:
+        all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
+
+    return wal_in, import_man_interface, all_wall_man, chain_api_manager
+
 
     return "Org Not Yet Added"
 
-def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
+def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager):
     items_without_integrity = import_man_interface.get_imports_without_integrity()
     obj_parser = ObjectParser()
 
@@ -93,30 +97,33 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
                 return ret
 
             update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
-            chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
+            #chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
             print(update_integrity)
+
+    for wal in all_wall_man:
+        wal.stop_utxo_manager()
 
     return "sucses"
 
 
 
 
-wal_in, import_man_interface, all_wall_man = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
+wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
 
-ret = all_wall_man['batch'].start_utxo_manager(min_utxos, min_balance)
-print(ret)
+#ret = all_wall_man['batch'].start_utxo_manager(min_utxos, min_balance)
+#print(ret)
 
-time.sleep(10)
+#time.sleep(10)
 
-ret = all_wall_man['batch'].stop_utxo_manager()
-print(ret)
+#ret = all_wall_man['batch'].stop_utxo_manager()
+#print(ret)
 
 #print(wal_in.get_address())
 
 #ret = all_wall_man["batch"].fund_offline_wallets()
 #print(ret)
 
-#main_loop_blocknotify(wal_in, import_man_interface, all_wall_man)
+main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager)
 
 
 """import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])
