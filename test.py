@@ -11,6 +11,21 @@ from object_parser import ObjectParser
 from import_manager import ImportManInterface
 from chain_api_manager import ChainApiInterface
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Reading environment variables
+explorer_url = os.getenv('EXPLORER_URL')
+seed = os.getenv('SEED')
+import_api_host = os.getenv('IMPORT_API_HOST')
+import_api_port = int(os.getenv('IMPORT_API_PORT'))
+chain_api_host = os.getenv('CHAIN_API_HOST')
+chain_api_port = int(os.getenv('CHAIN_API_PORT'))
+collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a comma-separated list
+
+
 wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
 #print(wal_in.send_tx_force( ["RA6kFZkA3oVrQjPGbuoxmZDaHvMp9sMhgg", "RFuBZNJCWiwW7a7TradLPLvwymooPRzsGR"], [1, 1] ))
 
