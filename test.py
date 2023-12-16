@@ -26,7 +26,7 @@ chain_api_port = int(os.getenv('CHAIN_API_PORT'))
 collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a comma-separated list
 
 
-wal_in = WalletInterface("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish")
+wal_in = WalletInterface(explorer_url, seed)
 #print(wal_in.send_tx_force( ["RA6kFZkA3oVrQjPGbuoxmZDaHvMp9sMhgg", "RFuBZNJCWiwW7a7TradLPLvwymooPRzsGR"], [1, 1] ))
 
 test_batch = {
@@ -63,7 +63,7 @@ def get_wals(import_manager, wal_in):
     return all_wall_man
 
 
-def init_blocknotify(explorer_url, seed, backend_url, backend_port, collection_names):
+def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain_api_host, chain_api_port, collection_names):
     wal_in = WalletInterface(explorer_url, seed)
     import_man_interface = ImportManInterface("127.0.0.1", 5000, ["batch"])  
     chain_api_manager =   ChainApiInterface("127.0.0.1", 5000)
@@ -99,7 +99,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
 
 
 
-wal_in, import_man_interface, all_wall_man = init_blocknotify("https://ofcmvp.explorer.batch.events/", "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish", "127.0.0.1", 5000, ["batch"])
+wal_in, import_man_interface, all_wall_man = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
 
 ret = all_wall_man['batch'].start_utxo_manager(10, 1000)
 print(ret)
