@@ -24,6 +24,8 @@ import_api_port = int(os.getenv('IMPORT_API_PORT'))
 chain_api_host = os.getenv('CHAIN_API_HOST')
 chain_api_port = int(os.getenv('CHAIN_API_PORT'))
 collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a comma-separated list
+min_utxos = int(os.getenv('MIN_UTXOS'))
+min_balance = int(os.getenv('MIN_BALANCE'))
 
 
 wal_in = WalletInterface(explorer_url, seed)
@@ -101,7 +103,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man):
 
 wal_in, import_man_interface, all_wall_man = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
 
-ret = all_wall_man['batch'].start_utxo_manager(10, 1000)
+ret = all_wall_man['batch'].start_utxo_manager(min_utxos, min_balance)
 print(ret)
 
 time.sleep(10)
