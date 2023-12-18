@@ -44,6 +44,10 @@ class ObjectParser:
 		# Convert the string to hexadecimal representation
 		hex_str = binascii.hexlify(json_str.encode()).decode()
 
+		if len(hex_str) % 2 == 1:
+			hex_str = "0" + hex_str
+
+		print(hex_str)
 		return hex_str
 
 

@@ -82,10 +82,27 @@ class WalletManager:
 		self.clean_batch_obj = self.remove_keys_from_json_object(keys_to_remove)
 		self.key_wallets = self.get_wallets()
 
+	def hexstring_to_bytearray(self, hexstring):
+		# Remove '-' characters from the hex string
+		hexstring = hexstring.replace('-', '')
+		print(hexstring)
+		try:
+			# Convert the cleaned hex string to bytes
+			byte_array = bytes.fromhex(hexstring)
+			return byte_array
+		except ValueError:
+			# Handle invalid hex input
+			return None
+
 	def get_wallet_address(self, string):
-		string = string.encode('utf-8')
+		if (self.is_hex_string(string) and len(string) > 15):
+			string = self.hexstring_to_bytearray(string)
+		else:
+			string = string.encode('utf-8')
+
 		sig = self.sign_key.sign_digest_deterministic(string, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der_canonize)
 		return sig
+
 
 	def encode_base58(self, buffer):
 		ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -171,7 +188,7 @@ class WalletManager:
 		if isinstance(input_string, dict):
 			return False
 		# Define a regular expression pattern for a hexadecimal string
-		hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
+		hex_pattern = re.compile(r'^[0-9a-fA-F-]+$')
 
 		# Use the re.match function to check if the input string matches the pattern
 		if re.match(hex_pattern, input_string):
@@ -180,9 +197,10 @@ class WalletManager:
 			return False
 
 	def send_batch_transaction_not_flat(self, tx_obj, batch_value):
+		print("test")
 		to_addr, to_pub = self.create_batch_address(batch_value)
 		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
-
+		print(tx_ids)
 		txid = self.org_wal.send_tx_opreturn(to_addr, tx_obj)	
 		tx_ids["txid"] = txid
 

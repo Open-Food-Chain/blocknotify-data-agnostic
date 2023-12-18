@@ -102,7 +102,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
 
             update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
             #chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
-            #print(update_integrity)
+            print(update_integrity)
 
     #for wal in all_wall_man:
         #wal.stop_utxo_manager()
