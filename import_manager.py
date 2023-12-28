@@ -46,6 +46,7 @@ class ImportManager:
 			first_items = {}
 			for collection_name in self.collections:
 				url = f"{self.base_url}/first-item/{collection_name}"
+				print(url)
 				response = requests.get(url)
 
 				if response.status_code == 200:
