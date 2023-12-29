@@ -81,6 +81,8 @@ class WalletManager:
 		self.sign_key = org_wal.get_sign_key()
 		self.clean_batch_obj = self.remove_keys_from_json_object(keys_to_remove)
 		self.key_wallets = self.get_wallets()
+		self.utxo_manager = None
+
 
 	def hexstring_to_bytearray(self, hexstring):
 		# Remove '-' characters from the hex string
@@ -247,15 +249,27 @@ class WalletManager:
 			try:
 				if key in tx_obj:
 					send_amounts = tx_obj[key]
+			
 			except ValueError:
 				print("obj not complete")
 				return "obj not complete"
 
-			for i in range(len(send_amounts)):
-				send_addrs.append(to_addr)
+			if send_amounts:
+				if isinstance(send_amounts[0], str):
+					print(send_amounts)
+					print(to_addr)
+					txid = self.key_wallets[key].send_tx_opreturn(to_addr, send_amounts)
+					tx_ids[key] = txid
 
-			txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
-			tx_ids[key] = txid
+				else:
+					for i in range(len(send_amounts)):
+						send_addrs.append(to_addr)
+
+					print(send_amounts)
+					print(send_addrs)
+
+					txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
+					tx_ids[key] = txid
 
 		return tx_ids
 

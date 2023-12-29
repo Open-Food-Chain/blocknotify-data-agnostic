@@ -72,16 +72,14 @@ def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain
     chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
     all_wall_man = get_wals(import_man_interface, wal_in)
 
-    #res = chain_api_manager.check_org(wal_in.get_address())
+    res = chain_api_manager.check_org(wal_in.get_address())
 
-    #if res == True:
-    #for name in all_wall_man:
-    #    all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
+    
+    for name in all_wall_man:
+        all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
 
     return wal_in, import_man_interface, all_wall_man, chain_api_manager
 
-
-    return "Org Not Yet Added"
 
 def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager):
     items_without_integrity = import_man_interface.get_imports_without_integrity()
@@ -96,16 +94,16 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
             print(unique_attribute)
             ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
             print(ret)
-            #if (isinstance(ret, str )):
-            #    print(ret)
-            #    return ret
+            if not (isinstance(ret, str )):
+                update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
+                chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
+                print(update_integrity)
+            else:
+                time.sleep(30)
 
-            update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
-            #chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), test_batch)
-            print(update_integrity)
-
-    for wal in all_wall_man:
-        wal.stop_utxo_manager()
+    
+    #for wal in all_wall_man:
+    #    all_wall_man[wal].stop_utxo_manager()
 
     return "sucses"
 

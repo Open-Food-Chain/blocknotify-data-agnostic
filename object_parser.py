@@ -51,6 +51,8 @@ class ObjectParser:
 		return hex_str
 
 
+
+
 	def parse_flat(self, obj):
 		tx_obj = {}
 
@@ -106,6 +108,14 @@ class ObjectParser:
 
 		# Otherwise, it's a string
 		return 2
+
+	def convert_ascii_to_hex(self, string):
+		hex_str = binascii.hexlify(string.encode()).decode()
+
+		if len(hex_str) % 2 == 1:
+			hex_str = "0" + hex_str
+
+		return hex_str
 
 	def convert_ascii_string_to_bytes(self, string):
 		byte_value = string.encode('utf-8')
@@ -188,7 +198,7 @@ class ObjectParser:
 
 		# String part commented out as requested
 		elif cat == 2:
-		    value = self.convert_string_to_sats(value)
+		    value = self.convert_ascii_to_hex(value)
 		    pass
 
 		return value

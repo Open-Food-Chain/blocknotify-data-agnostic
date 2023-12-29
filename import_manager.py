@@ -20,25 +20,27 @@ class ImportManager:
 
 	def add_integrity_details(self, collection_name, doc_id, integrity_data):
 		"""Add integrity details to a specific document."""
-		final_obj = {}
-		final_obj["txlist"] = integrity_data
-		final_obj["unique-addr"] = integrity_data["unique-addr"]
-		final_obj['item_id'] = doc_id
-		final_obj = {"integrity_data":final_obj}
+		if not isinstance(integrity_data, str):
+			final_obj = {}
+			final_obj["txlist"] = integrity_data
+			final_obj["unique-addr"] = integrity_data["unique-addr"]
+			final_obj['item_id'] = doc_id
+			final_obj = {"integrity_data":final_obj}
 
-		print(final_obj)
+			print(final_obj)
 
-		if collection_name not in self.collections:
-			raise ValueError(f"Collection {collection_name} not managed by ImportManager.")
+			if collection_name not in self.collections:
+				raise ValueError(f"Collection {collection_name} not managed by ImportManager.")
 
-		url = f"{self.base_url}/integrity-details/{collection_name}/{doc_id}"
-		response = requests.post(url, json=final_obj)
+			url = f"{self.base_url}/integrity-details/{collection_name}/{doc_id}"
+			response = requests.post(url, json=final_obj)
 
-		if response.status_code == 200:
-			return f"Integrity details added successfully. New Integrity ID: {response.json().get('integrity_id')}"
-		else:
-			return f"Error: {response.status_code}, {response.text}"
+			if response.status_code == 200:
+				return f"Integrity details added successfully. New Integrity ID: {response.json().get('integrity_id')}"
+			else:
+				return f"Error: {response.status_code}, {response.text}"
 
+		return "error"
 
 
 	def get_first_items(self):
