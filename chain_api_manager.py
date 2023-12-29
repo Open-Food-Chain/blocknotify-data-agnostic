@@ -20,11 +20,16 @@ class ChainApiManager:
             "org-raddress": org_raddress
         }
         # Merging batch_data into the data dictionary
+
         data.update(batch_data)
+        print(data)
+        del data['_id']
+        
         response = requests.post(url, json=data)
         if response.status_code == 201:
             return "Batch added successfully"
         else:
+            print(response.text)
             return f"Error: {response.status_code}"
 
 

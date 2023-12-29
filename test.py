@@ -96,8 +96,9 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
             print(ret)
             if not (isinstance(ret, str )):
                 update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
-                chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
+                res = chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
                 print(update_integrity)
+                print("chain manager: " + str(res))
             else:
                 time.sleep(30)
 

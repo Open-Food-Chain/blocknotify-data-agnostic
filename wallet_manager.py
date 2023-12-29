@@ -23,7 +23,7 @@ class UtxoManager:
 		amounts = []
 
 		for key in self.key_wallets:
-			if len(self.key_wallets[key].get_utxos()) < self.min_utxos:
+			if len(self.key_wallets[key].get_utxos()) < self.min_utxos or self.key_wallets[key].get_balance() < self.min_balance:
 				to_addrs.append(self.key_wallets[key].get_address())
 				amounts.append(100)
 
