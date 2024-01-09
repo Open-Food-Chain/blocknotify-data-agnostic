@@ -1,9 +1,70 @@
 import re
 import json
 import binascii
+import hashlib
 from datetime import datetime
 
 class ObjectParser:
+
+	def dubble_hash(self, string):
+		ret = self.hash_value(string)
+		ret = self.hash_value(ret)
+
+		return ret
+
+	def hash_value(self, string):
+		# Encode the string into bytes
+	    encoded_string = string.encode()
+	    
+	    # Create a new SHA256 hash object
+	    sha256_hash = hashlib.sha256()
+
+	    # Update the hash object with the bytes of the string
+	    sha256_hash.update(encoded_string)
+
+	    # Return the hexadecimal representation of the digest
+	    return sha256_hash.hexdigest()
+
+	def find_and_do(self, obj, key, func):
+	    if key in obj:
+	        obj[key] = func(obj[key]["value"])
+
+	    return obj
+
+	def preprocess_obj(self, obj):
+		key_found = self.find_key(obj, 'unique')
+
+		if key_found == None:
+			return obj, False
+
+		unique = obj[key_found]
+
+		del obj[key_found]
+
+		if isinstance(unique, dict):
+			unique = unique['value']
+
+		# hash
+		key_found = self.find_key(obj, 'hash')
+
+		if isinstance(key_found, list):
+			for key in key_found:
+				obj = self.find_and_do(obj, key, self.hash_value)
+		else:
+			obj = self.find_and_do(obj, key_found, self.hash_value)
+
+
+		key_found = self.find_key(obj, 'dubble_hash')
+		if isinstance(key_found, list):
+			for key in key_found:
+				obj = self.find_and_do(obj, key, self.dubble_hash)
+		else:
+			obj = self.find_and_do(obj, key_found, self.dubble_hash)
+
+
+		return obj, unique
+
+
 	def parse_obj(self, obj):
 
 		flat = self.is_flat_json(obj)
@@ -18,26 +79,11 @@ class ObjectParser:
 		else:
 			tx_obj = self.parse_non_flat(obj)
 
-		key_found = self.find_key_with_prefix(obj, 'unique-')
 
-		if key_found == None:
-			return tx_obj, "no unique value provided"
-
-		return tx_obj, key_found
+		return tx_obj
 
 
 	def parse_non_flat(self, obj):
-		"""
-		Convert a non-flat JSON object to a hexadecimal string and back to a string.
-
-		Args:
-		    obj (dict): The non-flat JSON object.
-
-		Returns:
-		    str: The resulting string after conversion.
-		"""
-
-
 		# Convert the JSON object to a string
 		json_str = json.dumps(obj)
 
@@ -62,15 +108,6 @@ class ObjectParser:
 		return tx_obj
 
 	def is_flat_json(self, json_obj):
-		"""
-		Check if a JSON object is flat (no nested objects or arrays).
-
-		Args:
-		    json_obj (dict): The JSON object to check.
-
-		Returns:
-		    bool: True if the JSON object is flat, False otherwise.
-		"""
 		if not isinstance(json_obj, dict):
 			return False  # Not a dictionary (JSON object)
 
@@ -169,10 +206,50 @@ class ObjectParser:
 		ret = self.satable_string_to_sats(ret)
 		return ret
 
+	def find_key(self, dictionary, string):
+		ret = self.find_key_with_prefix(dictionary, string)
+		if not ret == None:
+			return ret
+
+		ret = self.find_key_with_attribute(dictionary, string)
+		if not ret == None:
+			return ret
+
+		return False
+
 	def find_key_with_prefix(self, dictionary, prefix):
+		prefix = prefix + "-"
+
+		keys = []
+
 		for key in dictionary:
 			if key.startswith(prefix):
-				return dictionary[key]
+				keys.append(key)
+
+		if len(keys) == 1:
+			return keys[0]
+
+		if not len(keys) == 0:
+			return keys
+
+		return None
+
+	def find_key_with_attribute(self, dictionary, attribute):
+
+		keys = []
+
+		for key in dictionary:
+			if isinstance(dictionary[key], dict):
+				if attribute in dictionary[key]:
+					if dictionary[key][attribute] == True:
+						keys.append(key)
+
+		if len(keys) == 1:
+			return keys[0]
+
+		if not len(keys) == 0:
+			return keys
+
 		return None
 
 	def get_sat_value(self, value):

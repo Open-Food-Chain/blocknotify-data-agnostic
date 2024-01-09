@@ -66,19 +66,26 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
     for collection_name, items in items_without_integrity.items():
         wal_man = all_wall_man[collection_name]
         for item in items:
-            print(item)
-            tx_obj, unique_attribute = obj_parser.parse_obj(item)
+            #print(item)
+            
+            tx_obj, unique_attribute = obj_parser.preprocess_obj(item)
+
+            tx_obj = obj_parser.parse_obj(tx_obj)
+            
+            if unique_attribute == False:
+                return "attribute error"
+            
             print(tx_obj)
             print(unique_attribute)
-            ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
-            print(ret)
-            if not (isinstance(ret, str )):
-                update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
-                res = chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
-                print(update_integrity)
-                print("chain manager: " + str(res))
-            else:
-                time.sleep(30)
+            #ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
+            #print(ret)
+            #if not (isinstance(ret, str )):
+            #    update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
+            #    res = chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
+            #    print(update_integrity)
+            #    print("chain manager: " + str(res))
+            #else:
+            #    time.sleep(30)
 
     
     #for wal in all_wall_man:
@@ -93,7 +100,9 @@ wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify
 
 ret = main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager)
 
-print("exit with")
-print("#########")
 print(ret)
-print("tegar is cool")
+
+#print("exit with")
+#print("#########")
+#print(ret)
+#print("tegar is cool")
