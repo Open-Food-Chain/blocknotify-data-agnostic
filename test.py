@@ -102,7 +102,7 @@ ret = main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_ap
 
 print(ret)
 
-#print("exit with")
-#print("#########")
-#print(ret)
-#print("tegar is cool")
+print("exit with")
+print("#########")
+print(ret)
+print("tegar is cool")
