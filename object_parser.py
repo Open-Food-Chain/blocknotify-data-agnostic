@@ -27,11 +27,44 @@ class ObjectParser:
 
 	def find_and_do(self, obj, key, func):
 	    if key in obj:
-	        obj[key] = func(obj[key]["value"])
+	        obj[key]["value"] = func(obj[key]["value"])
 
 	    return obj
 
+	def value_is_value(self, obj):
+		if isinstance(obj, dict):
+			for key in obj:
+				if isinstance(obj[key], dict):
+					if "value" in obj[key]:
+						obj[key] = obj[key]["value"]
+					else:
+						obj[key] = self.value_is_value(obj[key])
+				else:
+					obj[key] = self.value_is_value(obj[key])
+		else:
+			return obj
+
+		return obj
+
 	def preprocess_obj(self, obj):
+		# hash
+		key_found = self.find_key(obj, 'hash')
+
+		if isinstance(key_found, list):
+			for key in key_found:
+				obj = self.find_and_do(obj, key, self.hash_value)
+		else:
+			obj = self.find_and_do(obj, key_found, self.hash_value)
+
+
+		key_found = self.find_key(obj, 'double_hash')
+		if isinstance(key_found, list):
+			for key in key_found:
+				obj = self.find_and_do(obj, key, self.dubble_hash)
+		else:
+			obj = self.find_and_do(obj, key_found, self.dubble_hash)
+
+
 		key_found = self.find_key(obj, 'unique')
 
 		if key_found == None:
@@ -44,23 +77,10 @@ class ObjectParser:
 		if isinstance(unique, dict):
 			unique = unique['value']
 
-		# hash
-		key_found = self.find_key(obj, 'hash')
 
-		if isinstance(key_found, list):
-			for key in key_found:
-				obj = self.find_and_do(obj, key, self.hash_value)
-		else:
-			obj = self.find_and_do(obj, key_found, self.hash_value)
-
-
-		key_found = self.find_key(obj, 'dubble_hash')
-		if isinstance(key_found, list):
-			for key in key_found:
-				obj = self.find_and_do(obj, key, self.dubble_hash)
-		else:
-			obj = self.find_and_do(obj, key_found, self.dubble_hash)
-
+		print(obj)
+		obj = self.value_is_value(obj)
+		print(obj)
 
 		return obj, unique
 
