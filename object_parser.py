@@ -70,6 +70,9 @@ class ObjectParser:
 		if key_found == None:
 			return obj, False
 
+		if key_found == False:
+			return obj, False
+
 		unique = obj[key_found]
 
 		del obj[key_found]
