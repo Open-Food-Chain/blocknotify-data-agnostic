@@ -2,7 +2,7 @@ import requests
 
 class ImportManager:
 	def __init__(self, base_url, port, collections):
-		self.base_url = f"http://{base_url}:{port}"
+		self.base_url = f"{base_url}:{port}"
 		self.collections = collections
 
 	def get_imports_without_integrity(self):
