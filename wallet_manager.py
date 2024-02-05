@@ -75,7 +75,8 @@ class UtxoManager:
 
 
 class WalletManager:
-	def __init__(self, org_wal, batch_obj, keys_to_remove):
+	def __init__(self, org_wal, ex_url, batch_obj, keys_to_remove):
+		self.ex_url = ex_url
 		self.org_wal = org_wal 
 		self.batch_obj = batch_obj
 		self.sign_key = org_wal.get_sign_key()
@@ -137,7 +138,8 @@ class WalletManager:
 
 		for key in self.clean_batch_obj:
 			new_seed = self.encode_base58(self.get_wallet_address(key))
-			new_wallet = WalletInterface("https://ofcmvp.explorer.batch.events/", new_seed)
+			explorer = Explorer(self.ex_url)
+			new_wallet = WalletInterface(explorer, new_seed)
 			name_and_wal[key] = new_wallet
 
 		return name_and_wal
@@ -151,7 +153,8 @@ class WalletManager:
 
 	def create_batch_address(self, batch_value ):
 		new_seed = self.encode_base58(self.get_wallet_address(batch_value))
-		new_wallet = WalletInterface("https://ofcmvp.explorer.batch.events/", new_seed)
+		explorer = Explorer(self.ex_url)
+		new_wallet = WalletInterface(explorer, new_seed)
 		return new_wallet.get_address(), new_wallet.get_public_key()
 
 	def _fund_offline_wallets(self):
@@ -286,8 +289,8 @@ class WalletManager:
 		return "sucses"
 
 class WalManInterface:
-	def __init__(self, org_wal, batch_obj, keys_to_remove):
-		self.wallet_manager = WalletManager(org_wal, batch_obj, keys_to_remove)
+	def __init__(self, org_wal, explorer_url, batch_obj, keys_to_remove):
+		self.wallet_manager = WalletManager(org_wal, explorer_url, batch_obj, keys_to_remove)
 
 	def fund_offline_wallets(self):
 		return self.wallet_manager.fund_offline_wallets()

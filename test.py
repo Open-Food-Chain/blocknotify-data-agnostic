@@ -36,13 +36,14 @@ def get_wals(import_manager, wal_in):
 
     for collection_name, test_batch in first_items.items():
         if isinstance(test_batch, dict):  # Ensure that test_batch is a dictionary
-            all_wall_man[collection_name] = WalManInterface(wal_in, test_batch, to_remove)
+            all_wall_man[collection_name] = WalManInterface(wal_in, explorer_url, test_batch, to_remove)
 
     return all_wall_man
 
 
 def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain_api_host, chain_api_port, collection_names):
-    wal_in = WalletInterface(explorer_url, seed)
+    explorer = Explorer(explorer_url)
+    wal_in = WalletInterface(explorer, seed)
     import_man_interface = ImportManInterface(import_api_host, import_api_port, collection_names)  
     chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
     all_wall_man = get_wals(import_man_interface, wal_in)
@@ -64,6 +65,8 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
         return "no items try later"
 
     for collection_name, items in items_without_integrity.items():
+        print(collection_name)
+        print(items)
         wal_man = all_wall_man[collection_name]
         for item in items:
             print(item)
@@ -94,7 +97,8 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
     return "sucses"
 
 
-wal_in = WalletInterface(explorer_url, seed)
+explorer = Explorer(explorer_url)
+wal_in = WalletInterface(explorer, seed)
 
 wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
 
