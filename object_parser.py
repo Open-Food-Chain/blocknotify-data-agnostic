@@ -134,26 +134,62 @@ class ObjectParser:
 		self.walk_and_apply(obj, 'hash', self.hash_value)
 		self.walk_and_apply(obj, 'double_hash', self.dubble_hash)
 
-		"""if isinstance(key_found, list):
-			for key in key_found:
-				obj = self.find_and_do(obj, key, self.hash_value)
-		else:
-			obj = self.find_and_do(obj, key_found, self.hash_value)
-
-
-		key_found = self.find_key(obj, 'double_hash')
-		if isinstance(key_found, list):
-			for key in key_found:
-				obj = self.find_and_do(obj, key, self.dubble_hash)
-		else:
-			obj = self.find_and_do(obj, key_found, self.dubble_hash)"""
-
 
 		unique = self.find_and_delete_unique(obj)
 
 		print(obj)
 		obj = self.value_is_value(obj)
 		print(obj)
+
+		return obj, unique
+
+
+	def preprocess_clear_text(self, obj, parent=None):
+		"""
+		Recursively walks through a JSON-like object and hashes all values that are behind the 'value' key,
+		or any attribute that has a plain value that is not a bool. Does not hash if the parent object has 
+		a 'clear_text' attribute set to true.
+
+		Args:
+		obj (dict or list): The JSON-like object to walk through.
+
+		Returns:
+		None: The function modifies the object in place.
+		"""
+
+		# If the object is a dictionary
+		if isinstance(obj, dict):
+			for key, value in list(obj.items()):
+				# Check if 'clear_text' is set to true in the parent, skip hashing
+				if obj.get('clear_text', False) and key == 'value':
+					continue
+
+				# Apply hash to 'value' keys or non-bool plain values
+				if key == 'value' and (not isinstance(value, (dict, list, bool, int))):
+					obj[key] = self.dubble_hash(value)
+				# Recursively apply the function if the value is a dictionary or list
+				elif isinstance(value, (dict, list)):
+					self.preprocess_clear_text(value, obj)
+
+		# If the object is a list
+		elif isinstance(obj, list):
+			for index, item in enumerate(obj):
+				# Recursively apply the function if the item is a dictionary or list
+				if isinstance(item, (dict, list)):
+					self.preprocess_clear_text(item, obj)
+				# Apply hash to non-bool plain values in lists
+				elif not isinstance(item, (bool, int)):
+					obj[index] = self.dubble_hash(item)
+
+		return obj
+
+
+	def preprocess_save(self, obj):
+		obj = self.preprocess_clear_text(obj)
+
+		unique = self.find_and_delete_unique(obj)
+
+		obj = self.value_is_value(obj)
 
 		return obj, unique
 
