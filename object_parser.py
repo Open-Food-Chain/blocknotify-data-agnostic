@@ -14,22 +14,24 @@ class ObjectParser:
 
 	def hash_value(self, string):
 		# Encode the string into bytes
-	    encoded_string = string.encode()
-	    
-	    # Create a new SHA256 hash object
-	    sha256_hash = hashlib.sha256()
+		encoded_string = string.encode()
 
-	    # Update the hash object with the bytes of the string
-	    sha256_hash.update(encoded_string)
+		# Create a new SHA256 hash object
+		sha256_hash = hashlib.sha256()
 
-	    # Return the hexadecimal representation of the digest
-	    return sha256_hash.hexdigest()
+		# Update the hash object with the bytes of the string
+		sha256_hash.update(encoded_string)
+
+		# Return the hexadecimal representation of the digest
+		return sha256_hash.hexdigest()
 
 	def find_and_do(self, obj, key, func):
-	    if key in obj:
-	        obj[key]["value"] = func(obj[key]["value"])
+		if key in obj:
+			if isinstance(obj[key], dict):
+				self.find_and_do(obj[key], key, func)
+			obj[key]["value"] = func(obj[key]["value"])
 
-	    return obj
+		return obj
 
 	def value_is_value(self, obj):
 		if isinstance(obj, dict):
@@ -46,11 +48,93 @@ class ObjectParser:
 
 		return obj
 
+	def walk_and_apply(self, obj, target_attribute, operation):
+		"""
+		Recursively walks through a JSON object and applies the given operation
+		to the 'value' attribute of every object that contains the target attribute.
+
+		Args:
+		obj (dict or list): The JSON object to walk through.
+		target_attribute (str): The name of the attribute to look for.
+		operation (function): The operation to apply to the 'value' attribute.
+
+		Returns:
+		None: The function modifies the object in place.
+		"""
+
+		# If the object is a dictionary
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				print(key)
+				# Check if this dictionary contains the target attribute
+				if key == target_attribute:
+					if value == True:
+						print(key)
+						obj['value'] = operation(obj['value'])
+				# Otherwise, if the value is a dictionary or list, recurse into it
+				else:
+					self.walk_and_apply(value, target_attribute, operation)
+
+		# If the object is a list
+		elif isinstance(obj, list):
+			for item in obj:
+				# Recurse into list items if they are dictionaries or lists
+				if isinstance(item, (dict, list)):
+					self.walk_and_apply(item, target_attribute, operation)
+
+	def find_and_delete_unique(self, obj, parent=None, key_in_parent=None):
+		"""
+		Recursively searches for the 'unique' attribute in a JSON-like object, returns the value 
+		of the 'value' attribute within the same dictionary, and deletes the dictionary.
+
+		Args:
+		obj (dict or list): The JSON-like object to search through.
+		parent: The parent object of the current object.
+		key_in_parent: The key of the current object in the parent object.
+
+		Returns:
+		The value of the 'value' attribute within the dictionary that contains the 'unique' attribute, 
+		or None if not found.
+		"""
+
+		# If the object is a dictionary
+		if isinstance(obj, dict):
+			for key, value in list(obj.items()):  # Use list to avoid runtime error due to dict size change
+				# Check if this key is 'unique'
+				if key == 'unique' and 'value' in obj:
+					# Store the value to return
+					value_to_return = obj['value']
+					# Delete the dictionary from its parent
+					if parent is not None and key_in_parent is not None:
+						del parent[key_in_parent]
+					return value_to_return
+				# If the value is a dictionary or list, recurse into it
+				elif isinstance(value, (dict, list)):
+					result = self.find_and_delete_unique(value, obj, key)
+					# Return the result if found
+					if result is not None:
+						return result
+
+		# If the object is a list
+		elif isinstance(obj, list):
+			for index, item in enumerate(obj):
+				# Recurse into list items if they are dictionaries or lists
+				if isinstance(item, (dict, list)):
+					result = self.find_and_delete_unique(item, obj, index)
+					# Return the result if found
+					if result is not None:
+						return result
+
+		# If 'unique' attribute not found
+		return None
+
+
 	def preprocess_obj(self, obj):
 		# hash
-		key_found = self.find_key(obj, 'hash')
+		self.walk_and_apply(obj, 'hash', self.hash_value)
+		self.walk_and_apply(obj, 'double_hash', self.dubble_hash)
 
-		if isinstance(key_found, list):
+		"""if isinstance(key_found, list):
 			for key in key_found:
 				obj = self.find_and_do(obj, key, self.hash_value)
 		else:
@@ -62,24 +146,10 @@ class ObjectParser:
 			for key in key_found:
 				obj = self.find_and_do(obj, key, self.dubble_hash)
 		else:
-			obj = self.find_and_do(obj, key_found, self.dubble_hash)
+			obj = self.find_and_do(obj, key_found, self.dubble_hash)"""
 
 
-		key_found = self.find_key(obj, 'unique')
-
-		if key_found == None:
-			return obj, False
-
-		if key_found == False:
-			return obj, False
-
-		unique = obj[key_found]
-
-		del obj[key_found]
-
-		if isinstance(unique, dict):
-			unique = unique['value']
-
+		unique = self.find_and_delete_unique(obj)
 
 		print(obj)
 		obj = self.value_is_value(obj)
