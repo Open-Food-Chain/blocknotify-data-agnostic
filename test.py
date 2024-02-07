@@ -71,7 +71,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
         for item in items:
             print(item)
             
-            tx_obj, unique_attribute = obj_parser.preprocess_obj(item)
+            tx_obj, unique_attribute = obj_parser.preprocess_save(item)
 
             if unique_attribute:
                 tx_obj = obj_parser.parse_obj(tx_obj)
