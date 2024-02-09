@@ -160,12 +160,16 @@ class ObjectParser:
 		# If the object is a dictionary
 		if isinstance(obj, dict):
 			for key, value in list(obj.items()):
+				print(key)
+				print(obj.get('clear_text', False))
 				# Check if 'clear_text' is set to true in the parent, skip hashing
-				if obj.get('clear_text', False) and key == 'value':
+				if obj.get('clear_text', False) and key == 'value' or obj.get('clear_text', False) and isinstance(value, (str, int, float) ):
 					continue
 
 				# Apply hash to 'value' keys or non-bool plain values
-				if key == 'value' and (not isinstance(value, (dict, list, bool, int))):
+				if not isinstance(value, (dict, list, bool)):
+					if isinstance(value, int) or isinstance(value, float):
+						value = str(value)
 					obj[key] = self.dubble_hash(value)
 				# Recursively apply the function if the value is a dictionary or list
 				elif isinstance(value, (dict, list)):
