@@ -92,7 +92,7 @@ class ObjectParser:
 				# Check if this dictionary contains the target attribute
 				if key == target_attribute:
 					if value == True:
-						print(key)
+						#print(key)
 						obj['value'] = operation(obj['value'])
 				# Otherwise, if the value is a dictionary or list, recurse into it
 				else:
@@ -189,8 +189,10 @@ class ObjectParser:
 				if obj.get('clear_text', False) and key == 'value' or obj.get('clear_text', False) and isinstance(value, (str, int, float) ):
 					continue
 
+				print(value)
+
 				# Apply hash to 'value' keys or non-bool plain values
-				if not isinstance(value, (dict, list, bool)):
+				if not isinstance(value, (dict, list, bool)) and not value == None:
 					if isinstance(value, int) or isinstance(value, float):
 						value = str(value)
 					obj[key] = self.dubble_hash(value)
