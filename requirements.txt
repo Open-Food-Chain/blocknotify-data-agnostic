@@ -6,6 +6,7 @@ ecdsa==0.18.0
 ECPy==1.2.5
 idna==3.6
 pyblake2==1.1.2
+pycryptodome==3.20.0
 pycurl==7.45.2
 pymongo==4.6.1
 python-dotenv==1.0.0
