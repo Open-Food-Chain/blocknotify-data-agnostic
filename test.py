@@ -81,6 +81,9 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
                 ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
                 print("int details: ")
                 print(ret)
+                print("details")
+                print(item)
+                print(item['_id'])
                 if not (isinstance(ret, str )):
                     update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
                     res = chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)

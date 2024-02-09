@@ -183,22 +183,23 @@ class ObjectParser:
 		# If the object is a dictionary
 		if isinstance(obj, dict):
 			for key, value in list(obj.items()):
-				print(key)
-				print(obj.get('clear_text', False))
-				# Check if 'clear_text' is set to true in the parent, skip hashing
-				if obj.get('clear_text', False) and key == 'value' or obj.get('clear_text', False) and isinstance(value, (str, int, float) ):
-					continue
+				if not key == "_id":
+					print(key)
+					print(obj.get('clear_text', False))
+					# Check if 'clear_text' is set to true in the parent, skip hashing
+					if obj.get('clear_text', False) and key == 'value' or obj.get('clear_text', False) and isinstance(value, (str, int, float) ):
+						continue
 
-				print(value)
+					print(value)
 
-				# Apply hash to 'value' keys or non-bool plain values
-				if not isinstance(value, (dict, list, bool)) and not value == None:
-					if isinstance(value, int) or isinstance(value, float):
-						value = str(value)
-					obj[key] = self.dubble_hash(value)
-				# Recursively apply the function if the value is a dictionary or list
-				elif isinstance(value, (dict, list)):
-					self.preprocess_clear_text(value, obj)
+					# Apply hash to 'value' keys or non-bool plain values
+					if not isinstance(value, (dict, list, bool)) and not value == None:
+						if isinstance(value, int) or isinstance(value, float):
+							value = str(value)
+						obj[key] = self.dubble_hash(value)
+					# Recursively apply the function if the value is a dictionary or list
+					elif isinstance(value, (dict, list)):
+						self.preprocess_clear_text(value, obj)
 
 		# If the object is a list
 		elif isinstance(obj, list):
