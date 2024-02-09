@@ -34,17 +34,40 @@ class ObjectParser:
 		return obj
 
 	def value_is_value(self, obj):
+		"""
+		Transforms a JSON-like object by replacing any dictionary with a 'value' key by its value.
+
+		Args:
+		obj (dict or list): The JSON-like object to transform.
+
+		Returns:
+		The transformed object.
+		"""
+
 		if isinstance(obj, dict):
 			for key in obj:
-				if isinstance(obj[key], dict):
+				# If the value is a dict or list, recurse into it
+				if isinstance(obj[key], (dict, list)):
+					# Replace dict containing 'value' key with its value
 					if "value" in obj[key]:
 						obj[key] = obj[key]["value"]
 					else:
 						obj[key] = self.value_is_value(obj[key])
+				# Otherwise, apply the function to the value
 				else:
 					obj[key] = self.value_is_value(obj[key])
-		else:
-			return obj
+		elif isinstance(obj, list):
+			for index, item in enumerate(obj):
+				# If the item is a dict or list, recurse into it
+				if isinstance(item, (dict, list)):
+					# Replace dict containing 'value' key with its value
+					if isinstance(item, dict) and "value" in item:
+						obj[index] = item["value"]
+					else:
+						obj[index] = self.value_is_value(item)
+				# Otherwise, apply the function to the item
+				else:
+					obj[index] = self.value_is_value(item)
 
 		return obj
 
