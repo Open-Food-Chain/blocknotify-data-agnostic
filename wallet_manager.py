@@ -1,6 +1,7 @@
 from komodo_py.transaction import TxInterface
 from komodo_py.explorer import Explorer
 from komodo_py.wallet import WalletInterface
+
 from ecpy.curves     import Curve,Point
 import hashlib
 import ecdsa
@@ -75,15 +76,21 @@ class UtxoManager:
 
 
 class WalletManager:
-	def __init__(self, org_wal, ex_url, batch_obj, keys_to_remove):
+	def __init__(self, org_wal, ex_url, batch_obj, keys_to_remove, oracle_manager=None, collection=""):
 		self.ex_url = ex_url
 		self.org_wal = org_wal 
 		self.batch_obj = batch_obj
 		self.sign_key = org_wal.get_sign_key()
 		self.clean_batch_obj = self.remove_keys_from_json_object(keys_to_remove)
 		self.key_wallets = self.get_wallets()
-		self.utxo_manager = None
 
+		self.utxo_manager = None
+		self.oracle_manager = oracle_manager
+
+		if not self.oracle_manager == None:
+			for field in self.key_wallets:
+				address = self.key_wallets[field].get_address()
+				self.oracle_manager.check_and_update_address_book(field, address, collection)
 
 	def hexstring_to_bytearray(self, hexstring):
 		# Remove '-' characters from the hex string
@@ -289,8 +296,8 @@ class WalletManager:
 		return "sucses"
 
 class WalManInterface:
-	def __init__(self, org_wal, explorer_url, batch_obj, keys_to_remove):
-		self.wallet_manager = WalletManager(org_wal, explorer_url, batch_obj, keys_to_remove)
+	def __init__(self, org_wal, explorer_url, batch_obj, keys_to_remove, oracle_manager=None, collection=""):
+		self.wallet_manager = WalletManager(org_wal, explorer_url, batch_obj, keys_to_remove, oracle_manager, collection)
 
 	def fund_offline_wallets(self):
 		return self.wallet_manager.fund_offline_wallets()
