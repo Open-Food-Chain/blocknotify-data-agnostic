@@ -28,7 +28,7 @@ private_key = os.getenv('THIS_NODE_WIF')
 ip_address = os.getenv('BATCH_SMARTCHAIN_NODE_IPV4_ADDR')
 
 
-node_rpc = NodeRpc(user_name, password, rpc_port, private_key, "127.0.0.1")
+node_rpc = NodeRpc(user_name, password, rpc_port, private_key, ip_address)
 
 #query = QueryInterface(node_rpc)
 

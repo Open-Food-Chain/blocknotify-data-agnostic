@@ -1,6 +1,8 @@
 from komodo_py.transaction import TxInterface
 from komodo_py.explorer import Explorer
 from komodo_py.wallet import WalletInterface
+from komodo_py.node_rpc import NodeRpc
+
 from ecpy.curves     import Curve,Point
 import hashlib
 import ecdsa
@@ -10,6 +12,7 @@ from wallet_manager import WalManInterface
 from object_parser import ObjectParser
 from import_manager import ImportManInterface
 from chain_api_manager import ChainApiInterface
+from oracles_manager import OraclesManager
 
 import os
 from dotenv import load_dotenv
@@ -24,9 +27,15 @@ import_api_port = int(os.getenv('IMPORT_API_PORT'))
 chain_api_host = os.getenv('CHAIN_API_HOST')
 chain_api_port = int(os.getenv('CHAIN_API_PORT'))
 collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a comma-separated list
-print(collections)
 min_utxos = int(os.getenv('MIN_UTXOS'))
 min_balance = int(os.getenv('MIN_BALANCE'))
+
+user_name = os.getenv('BATCH_SMARTCHAIN_NODE_USERNAME')
+password = os.getenv('BATCH_SMARTCHAIN_NODE_PASSWORD')
+rpc_port = int(os.getenv('BATCH_SMARTCHAIN_NODE_RPC_PORT'))
+private_key = os.getenv('THIS_NODE_WIF')
+ip_address = os.getenv('BATCH_SMARTCHAIN_NODE_IPV4_ADDR')
+org_name = os.getenv('ORG_NAME')
 
 
 def get_wals(import_manager, wal_in):
@@ -36,14 +45,18 @@ def get_wals(import_manager, wal_in):
 
     for collection_name, test_batch in first_items.items():
         if isinstance(test_batch, dict):  # Ensure that test_batch is a dictionary
-            all_wall_man[collection_name] = WalManInterface(wal_in, explorer_url, test_batch, to_remove)
+            or_man = OraclesManager(wal_in, org_name)
+            all_wall_man[collection_name] = WalManInterface(wal_in, explorer_url, test_batch, to_remove, or_man, collection_name)
 
     return all_wall_man
 
 
 def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain_api_host, chain_api_port, collection_names):
-    explorer = Explorer(explorer_url)
-    wal_in = WalletInterface(explorer, seed)
+    node_rpc = NodeRpc(user_name, password, rpc_port, private_key, ip_address)
+
+    wal_in = WalletInterface(node_rpc, seed, True)
+
+
     import_man_interface = ImportManInterface(import_api_host, import_api_port, collection_names)  
     chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
     all_wall_man = get_wals(import_man_interface, wal_in)
@@ -81,9 +94,6 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
                 ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
                 print("int details: ")
                 print(ret)
-                print("details")
-                print(item)
-                print(item['_id'])
                 if not (isinstance(ret, str )):
                     update_integrity = import_man_interface.add_integrity_details(collection_name, item['_id'], ret)
                     res = chain_api_manager.add_batch(ret["unique-addr"], ret["unique-pub"], wal_in.get_address(), item)
@@ -101,8 +111,8 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
     return "sucses"
 
 
-explorer = Explorer(explorer_url)
-wal_in = WalletInterface(explorer, seed)
+#explorer = Explorer(explorer_url)
+
 
 wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
 
