@@ -255,9 +255,6 @@ class ObjectParser:
 		print(hex_str)
 		return hex_str
 
-
-
-
 	def parse_flat(self, obj):
 		tx_obj = {}
 

@@ -100,9 +100,13 @@ test_batch = generate_test_batches(1)[0]
 
 wal_in = WalletInterface(node_rpc, "pact_image_wheat_cheese_model_daring_day_only_setup_cram_leave_good_limb_dawn_diagram_kind_orchard_pelican_chronic_repair_rack_oxygen_intact_vanish", True)
 
-or_man = OraclesManager(wal_in, "chris8")
+print( wal_in.get_address() )
+print( wal_in.get_wif() )
+print( wal_in.get_public_key() )
 
-all_wall_man = WalManInterface(wal_in, explorer_url, test_batch, to_remove, or_man, "batch")
+# or_man = OraclesManager(wal_in, "chris8")
+
+# all_wall_man = WalManInterface(wal_in, explorer_url, test_batch, to_remove, or_man, "batch")
 
 #ret = or_man.subscribe_to_org_oracle()
 
