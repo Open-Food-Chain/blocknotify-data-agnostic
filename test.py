@@ -34,9 +34,41 @@ user_name = os.getenv('BATCH_SMARTCHAIN_NODE_USERNAME')
 password = os.getenv('BATCH_SMARTCHAIN_NODE_PASSWORD')
 rpc_port = int(os.getenv('BATCH_SMARTCHAIN_NODE_RPC_PORT'))
 private_key = os.getenv('THIS_NODE_WIF')
+address = os.getenv('THIS_NODE_RADDRESS')
+pubkey = os.getenv('THIS_NODE_PUBKEY')
+
 ip_address = os.getenv('BATCH_SMARTCHAIN_NODE_IPV4_ADDR')
 org_name = os.getenv('ORG_NAME')
 
+
+def check_env(wal_in):
+    print("test")
+    err = False
+
+    addy =  wal_in.get_address()
+    pub = wal_in.get_public_key()
+    wif = wal_in.get_wif()
+
+    if not addy == address:
+        print("Address in the env is not correct")
+        print("It should be: ")
+        print(addy)
+        err = True
+
+    if not pub == pubkey:
+        print("Pubkey in the env is not correct")
+        print("It should be: ")
+        print(pub)    
+        err = True
+
+    if not wif == private_key:
+        print("Privkey in the env is not correct")
+        print("It should be: ")
+        print(wif)    
+        err = True   
+
+    if err == True:
+        exit()
 
 def get_wals(import_manager, wal_in):
     first_items = import_manager.get_first_items()
@@ -114,7 +146,10 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
 #explorer = Explorer(explorer_url)
 
 
+
 wal_in, import_man_interface, all_wall_man, chain_api_manager = init_blocknotify(explorer_url, seed, import_api_host, import_api_port,  chain_api_host, chain_api_port, collections)
+
+check_env(wal_in)
 
 ret = main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager)
 
