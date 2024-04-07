@@ -13,6 +13,7 @@ from object_parser import ObjectParser
 from import_manager import ImportManInterface
 from chain_api_manager import ChainApiInterface
 from oracles_manager import OraclesManager
+from scraper import Scraper
 
 import os
 from dotenv import load_dotenv
@@ -70,7 +71,7 @@ def check_env(wal_in):
     if err == True:
         exit()
 
-def get_wals(import_manager, wal_in):
+def get_wals(import_manager, wal_in, node):
     first_items = import_manager.get_first_items()
     to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
     all_wall_man = {}
@@ -79,6 +80,8 @@ def get_wals(import_manager, wal_in):
         if isinstance(test_batch, dict):  # Ensure that test_batch is a dictionary
             or_man = OraclesManager(wal_in, org_name)
             all_wall_man[collection_name] = WalManInterface(wal_in, explorer_url, test_batch, to_remove, or_man, collection_name)
+            scraper = Scraper(node=node, explorer_url=explorer_url, oracle_manager=or_man, collections=[collection_name])
+            block = scraper.scan_blocks()
 
     return all_wall_man
 
@@ -91,7 +94,9 @@ def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain
 
     import_man_interface = ImportManInterface(import_api_host, import_api_port, collection_names)  
     chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
-    all_wall_man = get_wals(import_man_interface, wal_in)
+    all_wall_man = get_wals(import_man_interface, wal_in, node_rpc)
+
+
 
     res = chain_api_manager.check_org(wal_in.get_address())
 
@@ -100,6 +105,7 @@ def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain
         all_wall_man[name].start_utxo_manager(min_utxos, min_balance)
 
     return wal_in, import_man_interface, all_wall_man, chain_api_manager
+
 
 
 def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_manager):
@@ -123,7 +129,7 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
                 
                 print(tx_obj)
                 print(unique_attribute)
-                ret = wal_man.send_batch_transaction(tx_obj, unique_attribute)
+                ret = wal_man.send_batch_transaction(tx_obj, unique_attribute, collection_name)
                 print("int details: ")
                 print(ret)
                 if not (isinstance(ret, str )):
@@ -157,5 +163,5 @@ print(ret)
 
 print("exit with")
 print("#########")
-print(ret)
+#print(ret)
 print("tegar is cool")

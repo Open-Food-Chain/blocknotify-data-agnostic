@@ -208,24 +208,39 @@ class WalletManager:
 		else:
 			return False
 
-	def send_batch_transaction_not_flat(self, tx_obj, batch_value):
+	def send_batch_transaction_not_flat(self, tx_obj, batch_value, marker=29185):
 		print("test")
 		to_addr, to_pub = self.create_batch_address(batch_value)
 		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
 		print(tx_ids)
-		txid = self.org_wal.send_tx_opreturn(to_addr, tx_obj)	
+		txid = self.org_wal.send_tx_opreturn(to_addr, tx_obj, marker)	
 		tx_ids["txid"] = txid
 
 		return tx_ids
 
+	def collection_name_to_marker(self, collection):
+		print(collection)
+		# Hash the collection name using SHA-256
+		hash_object = hashlib.sha256(collection.encode())
+		# Get the hexadecimal digest of the hash
+		hex_digest = hash_object.hexdigest()
+		# Take the first 5 characters of the hex digest
+		first_5_chars = hex_digest[:5]
+		# Convert the hexadecimal to decimal
+		decimal_representation = int(first_5_chars, 16)
+		print(decimal_representation)
+		return decimal_representation
 
-	def send_batch_transaction(self, tx_obj, batch_value):
+
+	def send_batch_transaction(self, tx_obj, batch_value, collection_name):
 		hexstring = self.is_hex_string(tx_obj)
+
+		marker = self.collection_name_to_marker(collection_name)
 
 		if not hexstring:
 			return self.send_batch_transaction_flat(tx_obj, batch_value)
 
-		return self.send_batch_transaction_not_flat(tx_obj, batch_value)
+		return self.send_batch_transaction_not_flat(tx_obj, batch_value, marker)
 
 	def send_batch_transaction_flat(self, tx_obj, batch_value):
 		print(tx_obj)
@@ -302,8 +317,8 @@ class WalManInterface:
 	def fund_offline_wallets(self):
 		return self.wallet_manager.fund_offline_wallets()
 
-	def send_batch_transaction(self, tx_obj, batch_value):
-		return self.wallet_manager.send_batch_transaction(tx_obj, batch_value)
+	def send_batch_transaction(self, tx_obj, batch_value, collection_name):
+		return self.wallet_manager.send_batch_transaction(tx_obj, batch_value, collection_name)
 
 	def start_utxo_manager(self, min_utxos, min_balance):
 		return self.wallet_manager.start_utxo_manager(min_utxos, min_balance)

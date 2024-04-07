@@ -58,6 +58,15 @@ class OraclesManager:
     def subscribe_to_org_oracle( self ):
         return self.wallet.subscribe_to_oracle(self.org_oracle, "1")
 
+    def publish_to_addressbook_oracle( self, collection, dic ):
+        name = self.addr_book_prefix + collection + "_" + self.org_name
+
+        oracle_txid = self.search_this_org_oracles(name)
+
+        string = json.dumps(dic)
+
+        return self.wallet.publish_data_string_to_oracle(oracle_txid, string)
+
     def publish_to_org_oracle( self, new_oracle_name, new_oracle_txid ):
         dic = {}
 
@@ -137,6 +146,13 @@ class OraclesManager:
 
             except BaseException:
                 pass
+
+    def get_this_org_collection_addressbook( self, collection ):
+        name = self.addr_book_prefix + collection + "_" + self.org_name
+
+        org_txid = self.search_this_org_oracles(name)
+
+        return org_txid
 
     def search_oracles_json( self, name, oracle_txid ):
         oracles_of_this_org = self.wallet.get_oracle_data(oracle_txid)['samples']
