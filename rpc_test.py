@@ -7,14 +7,14 @@ import string
 import datetime
 from slickrpc import Proxy
 
-from komodo_py.node_rpc import NodeRpc
-from komodo_py.explorer import QueryInterface
-from komodo_py.explorer import Explorer
-from komodo_py.wallet import WalletInterface
-from komodo_py.oracles import Oracles
+from blocknotify.komodo_py.node_rpc import NodeRpc
+from blocknotify.komodo_py.explorer import QueryInterface
+from blocknotify.komodo_py.explorer import Explorer
+from blocknotify.komodo_py.wallet import WalletInterface
+from blocknotify.komodo_py.oracles import Oracles
 
-from oracles_manager import OraclesManager
-from wallet_manager import WalManInterface
+from blocknotify.oracles_manager import OraclesManager
+from blocknotify.wallet_manager import WalManInterface
 
 import os
 from dotenv import load_dotenv

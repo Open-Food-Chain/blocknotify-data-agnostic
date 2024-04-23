@@ -1,18 +1,18 @@
-from komodo_py.transaction import TxInterface
-from komodo_py.explorer import Explorer
-from komodo_py.wallet import WalletInterface
-from komodo_py.node_rpc import NodeRpc
+from blocknotify.komodo_py.transaction import TxInterface
+from blocknotify.komodo_py.explorer import Explorer
+from blocknotify.komodo_py.wallet import WalletInterface
+from blocknotify.komodo_py.node_rpc import NodeRpc
 
 from ecpy.curves import Curve, Point
 import hashlib
 import ecdsa
 import time
 
-from wallet_manager import WalManInterface
-from object_parser import ObjectParser
-from chain_api_manager import ChainApiInterface
-from oracles_manager import OraclesManager
-from scraper import Scraper
+from blocknotify.wallet_manager import WalManInterface
+from blocknotify.object_parser import ObjectParser
+from blocknotify.chain_api_manager import ChainApiInterface
+from blocknotify.oracles_manager import OraclesManager
+from blocknotify.scraper import Scraper
 
 
 class BlockNotify:
@@ -49,7 +49,7 @@ class BlockNotify:
         return all_wall_man
 
     def send_batch(self, item, collection_name):
-    	self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, [collection_name])
+        self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, [collection_name])
         obj_parser = ObjectParser()
         tx_obj, unique_attribute = obj_parser.preprocess_save(item)
         tx_obj, unique_attribute = obj_parser.parse_obj(tx_obj)

@@ -1,5 +1,5 @@
-from komodo_py.explorer import QueryInterface
-from komodo_py.explorer import Explorer
+from blocknotify.komodo_py.explorer import QueryInterface
+from blocknotify.komodo_py.explorer import Explorer
 
 import json
 import hashlib

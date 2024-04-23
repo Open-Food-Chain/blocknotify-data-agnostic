@@ -1,6 +1,6 @@
-from komodo_py.transaction import TxInterface
-from komodo_py.explorer import Explorer
-from komodo_py.wallet import WalletInterface
+from blocknotify.komodo_py.transaction import TxInterface
+from blocknotify.komodo_py.explorer import Explorer
+from blocknotify.komodo_py.wallet import WalletInterface
 
 from ecpy.curves     import Curve,Point
 import hashlib
