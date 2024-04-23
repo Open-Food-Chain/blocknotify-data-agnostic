@@ -7,6 +7,7 @@ from ecpy.curves import Curve, Point
 import hashlib
 import ecdsa
 import time
+import threading
 
 from blocknotify.wallet_manager import WalManInterface
 from blocknotify.object_parser import ObjectParser
@@ -37,17 +38,30 @@ class BlockNotify:
         self.wal_in = WalletInterface(self.node_rpc, self.seed, True)
         self.chain_api_manager = ChainApiInterface(self.chain_api_host, self.chain_api_port)
 
+    def run_scraper(self, collection_names):
+        def scraper_routine():
+            or_man = OraclesManager(self.wal_in, self.org_name)
+            scraper = Scraper(node=self.node_rpc, explorer_url=self.explorer_url, oracle_manager=or_man, collections=collection_names)
+            
+            while True:
+                block = scraper.scan_blocks()
+                time.sleep(600)  # Sleeps for 10 minutes
+
+        # Start the scraper routine in a new thread
+        thread = threading.Thread(target=scraper_routine)
+        thread.start()
+        return thread  # Optional: return the thread object if you need to control it later
+
+
     def get_wals(self, first_items, wal_in, node, collection_name):
         to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
         all_wall_man = {}
 
         if isinstance(first_items, dict):
-            #or_man = OraclesManager(wal_in, self.org_name)
-            print(collection_name)
-
-            all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, first_items, to_remove, collection=collection_name)
-            #scraper = Scraper(node=node, explorer_url=self.explorer_url, oracle_manager=or_man, collections=[collection_name])
-            #block = scraper.scan_blocks()
+            or_man = OraclesManager(wal_in, self.org_name)
+            
+            all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, first_items, to_remove, or_man ,collection=collection_name)
+        
         return all_wall_man
 
     def send_batch(self, item, collection_name):
