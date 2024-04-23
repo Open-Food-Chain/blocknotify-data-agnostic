@@ -93,7 +93,7 @@ def init_blocknotify(explorer_url, seed, import_api_host, import_api_port, chain
 
 
     import_man_interface = ImportManInterface(import_api_host, import_api_port, collection_names)  
-    chain_api_manager =   ChainApiInterface(chain_api_host, chain_api_port)
+    chain_api_manager = ChainApiInterface(chain_api_host, chain_api_port)
     all_wall_man = get_wals(import_man_interface, wal_in, node_rpc)
 
 
@@ -148,6 +148,13 @@ def main_loop_blocknotify(wal_in, import_man_interface, all_wall_man, chain_api_
 
     return "sucses"
 
+
+def send_batch(item, collection_name):
+    obj_parser = ObjectParser()
+    tx_obj, unique_attribute = obj_parser.preprocess_save(item)
+    tx_obj, unique_attribute = obj_parser.parse_obj(tx_obj)
+    ret = wal_man.send_batch_transaction(tx_obj, unique_attribute, collection_name)
+    return ret
 
 #explorer = Explorer(explorer_url)
 
