@@ -37,22 +37,25 @@ class BlockNotify:
         self.wal_in = WalletInterface(self.node_rpc, self.seed, True)
         self.chain_api_manager = ChainApiInterface(self.chain_api_host, self.chain_api_port)
 
-    def get_wals(self, first_items, wal_in, node, collection_names):
+    def get_wals(self, first_items, wal_in, node, collection_name):
         to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
         all_wall_man = {}
-        for collection_name, test_batch in first_items.items():
-            if isinstance(test_batch, dict):
-                #or_man = OraclesManager(wal_in, self.org_name)
-                all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, test_batch, to_remove, collection=collection_name)
-                #scraper = Scraper(node=node, explorer_url=self.explorer_url, oracle_manager=or_man, collections=[collection_name])
-                #block = scraper.scan_blocks()
+
+        if isinstance(first_items, dict):
+            #or_man = OraclesManager(wal_in, self.org_name)
+            print(collection_name)
+
+            all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, first_items, to_remove, collection=collection_name)
+            #scraper = Scraper(node=node, explorer_url=self.explorer_url, oracle_manager=or_man, collections=[collection_name])
+            #block = scraper.scan_blocks()
         return all_wall_man
 
     def send_batch(self, item, collection_name):
-        self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, [collection_name])
+        self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, collection_name)
         obj_parser = ObjectParser()
         tx_obj, unique_attribute = obj_parser.preprocess_save(item)
-        tx_obj, unique_attribute = obj_parser.parse_obj(tx_obj)
+        tx_obj = obj_parser.parse_obj(tx_obj)
+        print(self.all_wall_man)
         wal_man = self.all_wall_man.get(collection_name, None)
         if wal_man:
             ret = wal_man.send_batch_transaction(tx_obj, unique_attribute, collection_name)
