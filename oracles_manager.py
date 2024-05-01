@@ -149,12 +149,18 @@ class OraclesManager:
     def search_this_org_oracles( self, name ):
         oracles_of_this_org = self.wallet.get_oracle_data(self.org_oracle)['samples']
 
+        print("CHECK SAMPLES")
+        print(oracles_of_this_org)
+        print(type(oracles_of_this_org))
 
         for oracle in oracles_of_this_org:
             #print(oracle)
             try:
                 #print(oracle['data'][0])
                 data = json.loads(oracle['data'][0])
+
+                print(name)
+
                 if name in data:
                     return data[name]
 
@@ -188,6 +194,8 @@ class OraclesManager:
     def get_oracles_json( self, oracle_txid ):
         samples = self.wallet.get_oracle_last_data(oracle_txid)['samples']
 
+        print("samples")
+        print(samples)
 
         for sample in samples:
             #print(oracle)
@@ -216,25 +224,30 @@ class OraclesManager:
 
         stored_value = self.get_oracles_json( address_book_txid )
 
+        if stored_value == None:
+            ret = self.publish_json_to_oracle(address_book_txid, key_addr)
+            return "stored: " + key_addr
+
+        print(field_names)
+
         for key in field_names:
             if key not in key_addr:
                 print("exec1")
-                return "error: " + key_addr
-
-
+                return "error: " + str(key_addr)
+            
             if key not in stored_value:
                 print("exec2")
                 ret = self.publish_json_to_oracle(address_book_txid, key_addr)
                 print("return: ")
                 print(ret)
-                return "stored: " + key_addr
+                return "stored: " + str(key_addr)
 
             if stored_value[key] != key_addr[key]:
                 print("exec3")
                 ret = self.publish_json_to_oracle(address_book_txid, key_addr)
                 print("return: ")
                 print(ret)
-                return "stored: " + key_addr
+                return "stored: " + str(key_addr)
 
         return None
 
