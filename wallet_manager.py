@@ -86,11 +86,17 @@ class WalletManager:
 
 		self.utxo_manager = None
 		self.oracle_manager = oracle_manager
-
+		
+		print("check 1")
 		if not self.oracle_manager == None:
+			print("check 1")
+
+			key_addr = {}
+
 			for field in self.key_wallets:
-				address = self.key_wallets[field].get_address()
-				self.oracle_manager.check_and_update_address_book(field, address, collection)
+				key_addr[field] = self.key_wallets[field].get_address()
+
+			self.oracle_manager.check_and_update_address_book(self.key_wallets, key_addr, collection)
 
 	def hexstring_to_bytearray(self, hexstring):
 		# Remove '-' characters from the hex string

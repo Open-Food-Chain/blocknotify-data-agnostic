@@ -29,6 +29,7 @@ class OraclesManager:
 
         self.org_oracle = self.find_oracle_txid(self.org_oracle_name)
         if self.org_oracle == None:
+            print("create org oracle triggered")
             self.create_org_oracle()
 
         self.wait_until_org_oracle_has_funds()
@@ -36,8 +37,11 @@ class OraclesManager:
         for name in self.ab_oracle_name:
             self.ab_oracle[name] = self.search_this_org_oracles(name)
             if self.ab_oracle[name] == None:
+                print("create orderbook oracle triggered")
                 self.ab_oracle[name] = self.create_address_book_oracle(name)
             self.wait_until_oracle_has_funds(self.ab_oracle[name])
+
+        print("FINISHED")
 
 
     def create_org_oracle( self ):
@@ -95,11 +99,21 @@ class OraclesManager:
 
         return self.wallet.publish_data_string_to_oracle(oracle_txid, string)
 
+    def publish_json_to_oracle( self, oracle_txid, dic):
+        
+        string = json.dumps(dic)
+
+        return self.wallet.publish_data_string_to_oracle(oracle_txid, string)
+
+
     def wait_until_org_oracle_has_funds( self ):
         funds = 0
 
         while funds < self.min_funds:
             ret = self.wallet.get_oracle_info(self.org_oracle)
+
+            print(ret)
+
             funds = float(ret['registered'][0]['funds'])
             funds = int(funds)
             print(funds)
@@ -155,14 +169,14 @@ class OraclesManager:
         return org_txid
 
     def search_oracles_json( self, name, oracle_txid ):
-        oracles_of_this_org = self.wallet.get_oracle_data(oracle_txid)['samples']
+        samples = self.wallet.get_oracle_data(oracle_txid)['samples']
 
 
-        for oracle in oracles_of_this_org:
+        for sample in samples:
             #print(oracle)
             try:
                 #print(oracle['data'][0])
-                data = json.loads(oracle['data'][0])
+                data = json.loads(sample['data'][0])
                 if name in data:
                     return data[name]
 
@@ -171,7 +185,60 @@ class OraclesManager:
 
         return None
 
-    def check_and_update_address_book( self, field, address, collection):
+    def get_oracles_json( self, oracle_txid ):
+        samples = self.wallet.get_oracle_last_data(oracle_txid)['samples']
+
+
+        for sample in samples:
+            #print(oracle)
+            try:
+                #print(oracle['data'][0])
+                data = json.loads(sample['data'][0])
+
+                return data
+
+            except BaseException:
+                pass
+
+        return None
+
+    def check_and_update_address_book( self, field_names, key_addr, collection):
+
+        print("the json: ")
+        print(key_addr)
+
+        name = self.addr_book_prefix + collection + "_" + self.org_name
+
+        address_book_txid = self.search_this_org_oracles(name)
+
+        print("addy book tx id")
+        print(address_book_txid)
+
+        stored_value = self.get_oracles_json( address_book_txid )
+
+        for key in field_names:
+            if key not in key_addr:
+                print("exec1")
+                return "error: " + key_addr
+
+
+            if key not in stored_value:
+                print("exec2")
+                ret = self.publish_json_to_oracle(address_book_txid, key_addr)
+                print("return: ")
+                print(ret)
+                return "stored: " + key_addr
+
+            if stored_value[key] != key_addr[key]:
+                print("exec3")
+                ret = self.publish_json_to_oracle(address_book_txid, key_addr)
+                print("return: ")
+                print(ret)
+                return "stored: " + key_addr
+
+        return None
+
+    def check_and_update_address_book_field( self, field, address, collection):
         name = self.addr_book_prefix + collection + "_" + self.org_name
 
         address_book_txid = self.search_this_org_oracles(name)
