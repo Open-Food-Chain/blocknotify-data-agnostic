@@ -36,6 +36,13 @@ class BlockNotify:
     def init_blocknotify(self):
         self.node_rpc = NodeRpc(self.node_username, self.node_password, self.rpc_port, self.node_wif, self.node_ipv4_addr)
         self.wal_in = WalletInterface(self.node_rpc, self.seed, True)
+        print("get wallet info:")
+        print("pubkey:")
+        print(self.wal_in.get_public_key())
+        print("privkey:")
+        print(self.wal_in.get_wif())
+        print("address:")
+        print(self.wal_in.get_address())
         self.chain_api_manager = ChainApiInterface(self.chain_api_host, self.chain_api_port)
 
     def run_scraper(self, collection_names):
