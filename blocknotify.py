@@ -47,12 +47,15 @@ class BlockNotify:
 
     def run_scraper(self, collection_names):
         def scraper_routine():
-            or_man = OraclesManager(self.wal_in, self.org_name)
-            scraper = Scraper(node=self.node_rpc, explorer_url=self.explorer_url, oracle_manager=or_man, collections=collection_names)
-            
-            while True:
-                block = scraper.scan_blocks()
-                time.sleep(600)  # Sleeps for 10 minutes
+            try:
+                or_man = OraclesManager(self.wal_in, self.org_name)
+                scraper = Scraper(node=self.node_rpc, explorer_url=self.explorer_url, oracle_manager=or_man, collections=collection_names)
+                
+                while True:
+                    block = scraper.scan_blocks()
+                    time.sleep(600)  # Sleeps for 10 minutes
+            except json.JSONDecodeError as e:
+                return f"error: {e}"
 
         # Start the scraper routine in a new thread
         thread = threading.Thread(target=scraper_routine)
