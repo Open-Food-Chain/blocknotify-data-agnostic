@@ -80,10 +80,14 @@ class WalletManager:
 		self.ex_url = ex_url
 		self.org_wal = org_wal 
 		self.batch_obj = batch_obj
+		print("start")
 		self.sign_key = org_wal.get_sign_key()
+		print("clean")
 		self.clean_batch_obj = self.remove_keys_from_json_object(keys_to_remove)
+		print("get walz")
 		self.key_wallets = self.get_wallets()
 
+		print("next")
 		self.utxo_manager = None
 		self.oracle_manager = oracle_manager
 		
@@ -97,6 +101,7 @@ class WalletManager:
 				key_addr[field] = self.key_wallets[field].get_address()
 
 			self.oracle_manager.check_and_update_address_book(self.key_wallets, key_addr, collection)
+			print("wallet made")
 
 	def hexstring_to_bytearray(self, hexstring):
 		# Remove '-' characters from the hex string
@@ -120,22 +125,31 @@ class WalletManager:
 		return sig
 
 
-	def encode_base58(self, buffer):
+	def encode_base58(self, input_data):
 		ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
+		# Check if input_data is a hex string and convert to byte buffer if necessary
+		if isinstance(input_data, str):
+			# Convert hex string to byte buffer
+			buffer = bytes.fromhex(input_data)
+		elif isinstance(input_data, bytes):
+			buffer = input_data
+		else:
+			raise TypeError("Input must be a hex string or bytes")
 
 		# Convert the buffer to a list of integers for easier processing
 		digits = [0]
 		for byte in buffer:
 			carry = byte
-			for j in range(len(digits)):
-				carry += digits[j] << 8
-				digits[j] = carry % 58
+			for i in range(len(digits)):
+				carry += digits[i] << 8
+				digits[i] = carry % 58
 				carry //= 58
 			while carry > 0:
 				digits.append(carry % 58)
 				carry //= 58
 
-	    # Remove leading zeros
+		# Count leading zeros in buffer
 		zero_count = 0
 		for byte in buffer:
 			if byte == 0:
@@ -144,16 +158,35 @@ class WalletManager:
 				break
 
 		# Convert digits to Base58 string
-		return ALPHABET[digits.pop()] + ALPHABET[0] * zero_count + ''.join(ALPHABET[d] for d in reversed(digits))
+		encoded = ''.join(ALPHABET[d] for d in reversed(digits))
+
+		# Add leading zeros
+		return ALPHABET[0] * zero_count + encoded
+
+
+
 
 	def get_wallets(self):
 		name_and_wal = {}
 
 		for key in self.clean_batch_obj:
-			new_seed = self.encode_base58(self.get_wallet_address(key))
+			print(key)
+			# Hash the key with SHA-256
+			hashed_key = hashlib.sha256(key.encode()).hexdigest()
+			
+			print(hashed_key)
+
+			new_seed = self.encode_base58(hashed_key)
+
+			print(new_seed)
+
 			explorer = Explorer(self.ex_url)
+
+			print("base stats")
+
 			new_wallet = WalletInterface(explorer, new_seed)
 			name_and_wal[key] = new_wallet
+			print(new_seed)
 
 		return name_and_wal
 

@@ -34,6 +34,7 @@ class BlockNotify:
         self.init_blocknotify()
 
     def init_blocknotify(self):
+        print("START INIT")
         self.node_rpc = NodeRpc(self.node_username, self.node_password, self.rpc_port, self.node_wif, self.node_ipv4_addr)
         self.wal_in = WalletInterface(self.node_rpc, self.seed, True)
         print("get wallet info:")
@@ -70,16 +71,27 @@ class BlockNotify:
         if isinstance(first_items, dict):
             or_man = OraclesManager(wal_in, self.org_name)
             
+            print("check " + str(first_items))
             all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, first_items, to_remove, or_man ,collection=collection_name)
         
         return all_wall_man
 
     def send_batch(self, item, collection_name):
+        print("start send")
         self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, collection_name)
+        
+        print("end get wals")
+
         obj_parser = ObjectParser()
+        
+
         tx_obj, unique_attribute = obj_parser.preprocess_save(item)
+        
+        print("parse end")
         tx_obj = obj_parser.parse_obj(tx_obj)
         print(self.all_wall_man)
+        
+
         wal_man = self.all_wall_man.get(collection_name, None)
         if wal_man:
             ret = wal_man.send_batch_transaction(tx_obj, unique_attribute, collection_name)
