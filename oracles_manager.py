@@ -15,13 +15,13 @@ class OraclesManager:
         self.wallet = wallet_Interface
         self.org_name = org_name
         self.addresses = {}
-        self.org_oracle_name = "Organization_Oracle" + self.org_name
+        self.org_oracle_name = "OO_" + self.org_name
         
 
         self.ab_oracle_name = []
         self.ab_oracle = {}
 
-        self.addr_book_prefix = "Address_Book_"
+        self.addr_book_prefix = "AB_"
 
         for collection in collections:
             name = self.addr_book_prefix + collection + "_" + self.org_name

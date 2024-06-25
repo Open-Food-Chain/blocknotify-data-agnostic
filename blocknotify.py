@@ -8,6 +8,7 @@ import hashlib
 import ecdsa
 import time
 import threading
+import json
 
 from blocknotify.wallet_manager import WalManInterface
 from blocknotify.object_parser import ObjectParser
