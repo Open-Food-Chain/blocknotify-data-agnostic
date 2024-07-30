@@ -113,38 +113,45 @@ class OraclesManager:
             ret = self.wallet.get_oracle_info(self.org_oracle)
 
             print(ret)
-
-            funds = float(ret['registered'][0]['funds'])
-            funds = int(funds)
-            print(funds)
-            if funds < self.min_funds:
-                time.sleep(30)
-                self.subscribe_to_org_oracle()
+            if len(ret['registered']) > 0:
+                funds = float(ret['registered'][0]['funds'])
+                funds = int(funds)
+                print(funds)
+                if funds < self.min_funds:
+                    time.sleep(30)
+                    self.subscribe_to_org_oracle()
+            else:
+                self.wallet.recreate_oracle_from_fund(self.org_oracle) ## we need to recreate
 
     def fund_oracle( self, oracle_txid ):
         funds = 0
 
         while funds < self.min_funds:
             ret = self.wallet.get_oracle_info(oracle_txid)
-            funds = float(ret['registered'][0]['funds'])
-            funds = int(funds)
-            print(funds)
-            if funds < self.min_funds:
-                time.sleep(30)
-                self.wallet.subscribe_to_oracle(oracle_txid, "1")
+            if len(ret['registered']) > 0:
+                funds = float(ret['registered'][0]['funds'])
+                funds = int(funds)
+                print(funds)
+                if funds < self.min_funds:
+                    time.sleep(30)
+                    self.wallet.subscribe_to_oracle(oracle_txid, "1")
+            else:
+                self.wallet.recreate_oracle_from_fund(oracle_txid) ## we need to recreate
 
     def wait_until_oracle_has_funds( self, oracle_txid ):
         funds = 0
 
         while funds < self.min_funds:
             ret = self.wallet.get_oracle_info(oracle_txid)
-            funds = float(ret['registered'][0]['funds'])
-            funds = int(funds)
-            print(funds)
-            if funds < self.min_funds:
-                time.sleep(30)
-                self.fund_oracle(oracle_txid)
-
+            if len(ret['registered']) > 0:
+                funds = float(ret['registered'][0]['funds'])
+                funds = int(funds)
+                print(funds)
+                if funds < self.min_funds:
+                    time.sleep(30)
+                    self.fund_oracle(oracle_txid)
+            else:
+                self.wallet.recreate_oracle_from_fund(oracle_txid) ## we need to recreate
 
     def search_this_org_oracles( self, name ):
         oracles_of_this_org = self.wallet.get_oracle_data(self.org_oracle)['samples']
