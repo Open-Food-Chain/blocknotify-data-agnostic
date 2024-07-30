@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 seed = os.getenv('SEED')
+
+print(seed)
+
 explorer_url = os.getenv('EXPLORER_URL')
 
 explorer = Explorer(explorer_url)
