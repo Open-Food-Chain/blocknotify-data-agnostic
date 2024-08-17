@@ -223,8 +223,10 @@ class WalletManager:
 				amounts.append(1)
 
 		if len(to_addrs) != 0:
-			print("try to send")
+			print("try to send from:")
+			print(self.org_wal.get_address())
 			res = self.org_wal.send_tx_force(to_addrs, amounts)['txid']
+
 			print(res)
 			return txid
 
@@ -340,8 +342,7 @@ class WalletManager:
 					for i in range(len(send_amounts)):
 						send_addrs.append(to_addr)
 
-					print(send_amounts)
-					print(send_addrs)
+					print("-- normal tx --")
 
 					txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
 					tx_ids[key] = txid
