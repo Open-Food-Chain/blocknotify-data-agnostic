@@ -208,13 +208,24 @@ class WalletManager:
 		to_addrs = []
 		amounts = []
 
+		print(self.key_wallets)
+
+
 		for key in self.key_wallets:
+
+			print(self.key_wallets[key].get_utxos())
+			print(to_addrs)
+			print(amounts)
+			print(self.key_wallets[key].get_address())
+
 			if len(self.key_wallets[key].get_utxos()) < 10:
 				to_addrs.append(self.key_wallets[key].get_address())
-				amounts.append(100)
+				amounts.append(1)
 
 		if len(to_addrs) != 0:
-			txid = self.org_wal.send_tx_force(to_addrs, amounts)["txid"]
+			print("try to send")
+			res = self.org_wal.send_tx_force(to_addrs, amounts)['txid']
+			print(res)
 			return txid
 
 		return "fully funded"

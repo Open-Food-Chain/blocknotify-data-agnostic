@@ -34,6 +34,11 @@ class BlockNotify:
         self.org_name = org_name
         self.init_blocknotify()
 
+    def get_health(self):
+        rpc_res = self.node_rpc.get_balance(None)
+
+        return rpc_res
+
     def init_blocknotify(self):
         print("START INIT")
         self.node_rpc = NodeRpc(self.node_username, self.node_password, self.rpc_port, self.node_wif, self.node_ipv4_addr)
