@@ -121,6 +121,9 @@ class ObjectParser:
 		"""
 
 		# If the object is a dictionary
+		print("**** INCOMMING OBJ ******")
+		print(obj)
+
 		if isinstance(obj, dict):
 			for key, value in list(obj.items()):  # Use list to avoid runtime error due to dict size change
 				# Check if this key is 'unique'
@@ -159,10 +162,7 @@ class ObjectParser:
 
 
 		unique = self.find_and_delete_unique(obj)
-
-		print(obj)
 		obj = self.value_is_value(obj)
-		print(obj)
 
 		return obj, unique
 

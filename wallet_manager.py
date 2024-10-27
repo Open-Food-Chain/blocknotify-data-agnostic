@@ -92,6 +92,8 @@ class WalletManager:
 		self.oracle_manager = oracle_manager
 		
 		print("check 1")
+		print(self.oracle_manager)
+
 		if not self.oracle_manager == None:
 			print("check 1")
 
@@ -123,6 +125,26 @@ class WalletManager:
 
 		sig = self.sign_key.sign_digest_deterministic(string, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der_canonize)
 		return sig
+
+	def get_unique_wallet_address(self, string):
+	    """
+	    This function hashes the given input with SHA-256, without signing it.
+	    
+	    Args:
+	        string (str): The input string to hash.
+
+	    Returns:
+	        bytes: The SHA-256 hash of the input string.
+	    """
+	    # Check if the input is a hex string and longer than 15 characters
+	    if self.is_hex_string(string) and len(string) > 15:
+	        string = self.hexstring_to_bytearray(string)
+	    else:
+	        string = string.encode('utf-8')
+
+	    # Hash the byte array or encoded string using SHA-256
+	    hash_digest = hashlib.sha256(string).digest()
+	    return hash_digest
 
 
 	def encode_base58(self, input_data):
@@ -198,9 +220,12 @@ class WalletManager:
 
 
 	def create_batch_address(self, batch_value ):
-		new_seed = self.encode_base58(self.get_wallet_address(batch_value))
+		new_seed = self.encode_base58(self.get_unique_wallet_address(batch_value))
+
 		explorer = Explorer(self.ex_url)
+		
 		new_wallet = WalletInterface(explorer, new_seed)
+		
 		return new_wallet.get_address(), new_wallet.get_public_key()
 
 	def _fund_offline_wallets(self):
@@ -285,6 +310,10 @@ class WalletManager:
 
 
 	def send_batch_transaction(self, tx_obj, batch_value, collection_name):
+
+		print("unique:")
+		print(batch_value)
+
 		hexstring = self.is_hex_string(tx_obj)
 
 		marker = self.collection_name_to_marker(collection_name)

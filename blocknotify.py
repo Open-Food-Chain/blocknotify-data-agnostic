@@ -75,8 +75,12 @@ class BlockNotify:
         all_wall_man = {}
 
         if isinstance(first_items, dict):
+            print("we are in get wals")
+
             or_man = OraclesManager(wal_in, self.org_name)
             
+            print(or_man)
+
             print("check " + str(first_items))
             all_wall_man[collection_name] = WalManInterface(wal_in, self.explorer_url, first_items, to_remove, or_man ,collection=collection_name)
         

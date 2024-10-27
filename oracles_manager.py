@@ -10,6 +10,8 @@ collections = os.getenv('COLLECTIONS').split(',')  # Assuming 'collections' is a
 
 class OraclesManager:
     def __init__(self, wallet_Interface, org_name):
+
+        print("oracle INIT")
         self.min_funds = 6
 
         self.wallet = wallet_Interface
@@ -24,6 +26,7 @@ class OraclesManager:
         self.addr_book_prefix = "AB_"
 
         for collection in collections:
+            print(collection)
             name = self.addr_book_prefix + collection + "_" + self.org_name
             self.ab_oracle_name.append(name)
 
@@ -223,6 +226,9 @@ class OraclesManager:
         print(key_addr)
 
         name = self.addr_book_prefix + collection + "_" + self.org_name
+
+        print("name")
+        print(name)
 
         address_book_txid = self.search_this_org_oracles(name)
 
