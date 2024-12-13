@@ -4,6 +4,8 @@ import binascii
 import hashlib
 from datetime import datetime
 
+from blocknotify.wallet_manager import WalletManager
+
 class ObjectParser:
 
 	def dubble_hash(self, string):
@@ -120,39 +122,11 @@ class ObjectParser:
 		or None if not found.
 		"""
 
-		# If the object is a dictionary
-		print("**** INCOMMING OBJ ******")
-		print(obj)
+		unique = obj['unique_value']
+		del obj['unique_value']
 
-		if isinstance(obj, dict):
-			for key, value in list(obj.items()):  # Use list to avoid runtime error due to dict size change
-				# Check if this key is 'unique'
-				if key == 'unique' and 'value' in obj:
-					# Store the value to return
-					value_to_return = obj['value']
-					# Delete the dictionary from its parent
-					if parent is not None and key_in_parent is not None:
-						del parent[key_in_parent]
-					return value_to_return
-				# If the value is a dictionary or list, recurse into it
-				elif isinstance(value, (dict, list)):
-					result = self.find_and_delete_unique(value, obj, key)
-					# Return the result if found
-					if result is not None:
-						return result
+		return unique
 
-		# If the object is a list
-		elif isinstance(obj, list):
-			for index, item in enumerate(obj):
-				# Recurse into list items if they are dictionaries or lists
-				if isinstance(item, (dict, list)):
-					result = self.find_and_delete_unique(item, obj, index)
-					# Return the result if found
-					if result is not None:
-						return result
-
-		# If 'unique' attribute not found
-		return None
 
 
 	def preprocess_obj(self, obj):
@@ -181,37 +155,41 @@ class ObjectParser:
 		"""
 
 		# If the object is a dictionary
+
+		ret_obj = {}
+
+		print(obj)
+
 		if isinstance(obj, dict):
+			print("we get here?")
 			for key, value in list(obj.items()):
+				print(obj[key])
 				if not key == "_id":
-					print(key)
-					print(obj.get('clear_text', False))
-					# Check if 'clear_text' is set to true in the parent, skip hashing
-					if obj.get('clear_text', False) and key == 'value' or obj.get('clear_text', False) and isinstance(value, (str, int, float) ):
-						continue
 
-					print(value)
+					actual_value = obj[key]['value']
 
-					# Apply hash to 'value' keys or non-bool plain values
-					if not isinstance(value, (dict, list, bool)) and not value == None:
-						if isinstance(value, int) or isinstance(value, float):
-							value = str(value)
-						obj[key] = self.dubble_hash(value)
-					# Recursively apply the function if the value is a dictionary or list
-					elif isinstance(value, (dict, list)):
-						self.preprocess_clear_text(value, obj)
 
-		# If the object is a list
-		elif isinstance(obj, list):
-			for index, item in enumerate(obj):
-				# Recursively apply the function if the item is a dictionary or list
-				if isinstance(item, (dict, list)):
-					self.preprocess_clear_text(item, obj)
-				# Apply hash to non-bool plain values in lists
-				elif not isinstance(item, (bool, int)):
-					obj[index] = self.dubble_hash(item)
+					if obj[key].get('address', False):
+						if not isinstance(actual_value, (bool)) and not actual_value == None:
+							if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
+								actual_value = str(actual_value)
 
-		return obj
+						print("actual value:")
+						print(actual_value)		
+						addr, pub = WalletManager.create_batch_address(actual_value)
+						ret_obj[key] = addr
+
+					elif not obj[key].get('clear_text', False):
+						if not isinstance(actual_value, (bool)) and not actual_value == None:
+							if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
+								actual_value = str(actual_value)
+						ret_obj[key] = self.dubble_hash(actual_value)
+					else:
+						ret_obj[key] = actual_value
+
+		print(ret_obj)
+
+		return ret_obj
 
 
 	def preprocess_save(self, obj):

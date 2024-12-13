@@ -4,7 +4,7 @@ import json
 import binascii
 import hashlib
 from datetime import datetime
-from object_parser import ObjectParser
+from blocknotify.object_parser import ObjectParser
 
 # ObjectParser class definition goes here
 # [Paste the ObjectParser class code here]

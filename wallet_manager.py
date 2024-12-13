@@ -105,7 +105,8 @@ class WalletManager:
 			self.oracle_manager.check_and_update_address_book(self.key_wallets, key_addr, collection)
 			print("wallet made")
 
-	def hexstring_to_bytearray(self, hexstring):
+	@staticmethod
+	def hexstring_to_bytearray(hexstring):
 		# Remove '-' characters from the hex string
 		hexstring = hexstring.replace('-', '')
 		print(hexstring)
@@ -118,15 +119,16 @@ class WalletManager:
 			return None
 
 	def get_wallet_address(self, string):
-		if (self.is_hex_string(string) and len(string) > 15):
-			string = self.hexstring_to_bytearray(string)
+		if (WalletManager.is_hex_string(string) and len(string) > 15):
+			string = WalletManager.hexstring_to_bytearray(string)
 		else:
 			string = string.encode('utf-8')
 
 		sig = self.sign_key.sign_digest_deterministic(string, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der_canonize)
 		return sig
 
-	def get_unique_wallet_address(self, string):
+	@staticmethod
+	def get_unique_wallet_address(string):
 	    """
 	    This function hashes the given input with SHA-256, without signing it.
 	    
@@ -137,8 +139,8 @@ class WalletManager:
 	        bytes: The SHA-256 hash of the input string.
 	    """
 	    # Check if the input is a hex string and longer than 15 characters
-	    if self.is_hex_string(string) and len(string) > 15:
-	        string = self.hexstring_to_bytearray(string)
+	    if WalletManager.is_hex_string(string) and len(string) > 15:
+	        string = WalletManager.hexstring_to_bytearray(string)
 	    else:
 	        string = string.encode('utf-8')
 
@@ -147,7 +149,8 @@ class WalletManager:
 	    return hash_digest
 
 
-	def encode_base58(self, input_data):
+	@staticmethod
+	def encode_base58(input_data):
 		ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 		# Check if input_data is a hex string and convert to byte buffer if necessary
@@ -187,6 +190,13 @@ class WalletManager:
 
 
 
+	def make_offline_wallet(self, unique):
+		hashed_key = hashlib.sha256(unique.encode()).hexdigest()
+		new_seed = WalletManager.encode_base58(hashed_key)
+		explorer = Explorer(self.ex_url)
+		new_wallet = WalletInterface(explorer, new_seed)
+		return new_wallet
+
 
 	def get_wallets(self):
 		name_and_wal = {}
@@ -198,7 +208,7 @@ class WalletManager:
 			
 			print(hashed_key)
 
-			new_seed = self.encode_base58(hashed_key)
+			new_seed = WalletManager.encode_base58(hashed_key)
 
 			print(new_seed)
 
@@ -219,14 +229,19 @@ class WalletManager:
 		return new_obj
 
 
-	def create_batch_address(self, batch_value ):
-		new_seed = self.encode_base58(self.get_unique_wallet_address(batch_value))
+	@staticmethod
+	def create_batch_address(batch_value, ex_url=None):
+		# Generate a new seed using the batch value
+		new_seed = WalletManager.encode_base58(WalletManager.get_unique_wallet_address(batch_value))
 
-		explorer = Explorer(self.ex_url)
-		
+		explorer = Explorer(ex_url)
+
+		# Create a new wallet using the new seed
 		new_wallet = WalletInterface(explorer, new_seed)
-		
+
+		# Return the address and public key of the newly created wallet
 		return new_wallet.get_address(), new_wallet.get_public_key()
+
 
 	def _fund_offline_wallets(self):
 		# Original implementation of fund_offline_wallets
@@ -272,7 +287,10 @@ class WalletManager:
 
 		return result
 
-	def is_hex_string(self, input_string):
+	@staticmethod
+	def is_hex_string(input_string):
+
+		print(input_string)
 
 		if isinstance(input_string, dict):
 			return False
@@ -287,7 +305,7 @@ class WalletManager:
 
 	def send_batch_transaction_not_flat(self, tx_obj, batch_value, marker=29185):
 		print("test")
-		to_addr, to_pub = self.create_batch_address(batch_value)
+		to_addr, to_pub = WalletManager.create_batch_address(batch_value, self.ex_url)
 		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
 		print(tx_ids)
 		txid = self.org_wal.send_tx_opreturn(to_addr, tx_obj, marker)	
@@ -314,7 +332,7 @@ class WalletManager:
 		print("unique:")
 		print(batch_value)
 
-		hexstring = self.is_hex_string(tx_obj)
+		hexstring = WalletManager.is_hex_string(tx_obj)
 
 		marker = self.collection_name_to_marker(collection_name)
 
@@ -345,7 +363,7 @@ class WalletManager:
 
 
 	def _send_batch_transaction(self, tx_obj, batch_value):
-		to_addr, to_pub = self.create_batch_address(batch_value)
+		to_addr, to_pub = WalletManager.create_batch_address(batch_value, self.ex_url)
 		tx_ids = {"unique-addr":to_addr, "unique-pub":to_pub}
 
 		for key in self.key_wallets:
@@ -405,3 +423,7 @@ class WalManInterface:
 
 	def stop_utxo_manager(self):
 		return self.wallet_manager.stop_utxo_manager()
+
+	#debug
+	def make_offline_wallet(self, unique):
+		return self.wallet_manager.make_offline_wallet(unique)
