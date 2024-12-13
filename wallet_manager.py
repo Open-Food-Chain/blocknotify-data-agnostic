@@ -390,9 +390,12 @@ class WalletManager:
 						send_addrs.append(to_addr)
 
 					print("-- normal tx --")
-
-					txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
-					tx_ids[key] = txid
+					try:
+						txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
+						tx_ids[key] = txid
+					except Exception as e:
+						print(str(e))
+						tx_ids[key] = None
 
 		return tx_ids
 
