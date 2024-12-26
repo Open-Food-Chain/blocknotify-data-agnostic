@@ -39,6 +39,8 @@ class OraclesManager:
 
         for name in self.ab_oracle_name:
             self.ab_oracle[name] = self.search_this_org_oracles(name)
+            print("check wdym?")
+            print(self.ab_oracle[name])
             if self.ab_oracle[name] == None:
                 print("create orderbook oracle triggered")
                 self.ab_oracle[name] = self.create_address_book_oracle(name)
@@ -164,7 +166,7 @@ class OraclesManager:
         print(type(oracles_of_this_org))
 
         for oracle in oracles_of_this_org:
-            #print(oracle)
+            print(oracle)
             try:
                 #print(oracle['data'][0])
                 data = json.loads(oracle['data'][0])

@@ -122,11 +122,25 @@ class ObjectParser:
 		or None if not found.
 		"""
 
-		unique = obj['unique_value']
-		del obj['unique_value']
+		ret = None
 
-		return unique
+		for key in obj:
+			if 'unique' in obj[key]:
+				if obj[key]['unique'] == True:
+					return obj[key]['value']
 
+			if isinstance(obj[key], list):
+				for element in obj[key]:
+					ret = self.find_and_delete_unique(element) 
+					if not ret == None:
+						return ret
+
+			elif isinstance(obj[key], dict) and 'value' not in obj[key]:
+				ret = self.find_and_delete_unique(element) 
+				if not ret == None:
+					return ret
+					
+		return ret
 
 
 	def preprocess_obj(self, obj):
@@ -140,6 +154,31 @@ class ObjectParser:
 
 		return obj, unique
 
+
+	def resolve_element(self, element):
+		actual_value = element.get('value')
+
+		ret_val = None
+
+		if element.get('address', False):
+			if not isinstance(actual_value, (bool)) and not actual_value == None:
+				if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
+					actual_value = str(actual_value)
+
+			print("actual value:")
+			print(actual_value)		
+			addr, pub = WalletManager.create_batch_address(actual_value)
+			ret_val = addr
+
+		elif not element.get('clear_text', False):
+			if not isinstance(actual_value, (bool)) and not actual_value == None:
+				if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
+					actual_value = str(actual_value)
+			ret_val = self.dubble_hash(actual_value)
+		else:
+			ret_val = actual_value
+
+		return ret_val
 
 	def preprocess_clear_text(self, obj, parent=None):
 		"""
@@ -157,45 +196,38 @@ class ObjectParser:
 		# If the object is a dictionary
 
 		ret_obj = {}
-
-		print(obj)
-
 		if isinstance(obj, dict):
-			print("we get here?")
 			for key, value in list(obj.items()):
-				print(obj[key])
 				if not key == "_id":
-
-					actual_value = obj[key]['value']
-
-
-					if obj[key].get('address', False):
-						if not isinstance(actual_value, (bool)) and not actual_value == None:
-							if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
-								actual_value = str(actual_value)
-
-						print("actual value:")
-						print(actual_value)		
-						addr, pub = WalletManager.create_batch_address(actual_value)
-						ret_obj[key] = addr
-
-					elif not obj[key].get('clear_text', False):
-						if not isinstance(actual_value, (bool)) and not actual_value == None:
-							if isinstance(actual_value, (int, dict, list)) or isinstance(actual_value, float):
-								actual_value = str(actual_value)
-						ret_obj[key] = self.dubble_hash(actual_value)
+					if isinstance(value, list):
+						for x in range( 0 , len(value)):
+							ret = self.resolve_element(value[x])
+							obj[key][x] = ret
+					
+					elif isinstance(value, dict) and 'value' not in value:
+						ret = self.preprocess_clear_text(value)
+						ret_obj[key] = ret
 					else:
-						ret_obj[key] = actual_value
-
-		print(ret_obj)
+						ret_obj[key] = self.resolve_element(obj[key])
 
 		return ret_obj
 
 
 	def preprocess_save(self, obj):
-		obj = self.preprocess_clear_text(obj)
+		print("IN comming obj: ")
+		print(obj)
 
 		unique = self.find_and_delete_unique(obj)
+
+		print("after delete")
+		print(unique)
+
+
+		obj = self.preprocess_clear_text(obj)
+
+		print("text procesing:")
+		print(obj)
+
 
 		obj = self.value_is_value(obj)
 
