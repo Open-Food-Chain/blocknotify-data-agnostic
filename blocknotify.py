@@ -74,6 +74,18 @@ class BlockNotify:
         to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
         all_wall_man = {}
 
+        for key in first_items.copy():
+            if 'address' in first_items[key]:
+                if first_items[key]['address'] == True:
+                    new_key = "reverse_" + key
+
+                    obj = first_items[key]
+                    del obj['address']
+                    obj['reverse_address'] = True
+
+                    first_items[new_key] = obj
+
+
         if isinstance(first_items, dict):
             print("we are in get wals")
 
@@ -86,8 +98,27 @@ class BlockNotify:
         
         return all_wall_man
 
+    def fund_offline_wallets(self, first_items, collection_name):
+        to_remove = ["integrity_details", "id", "created_at", "raw_json", "bnfp", "_id"]
+        all_wall_man = {}
+
+        ret = {}
+
+        if isinstance(first_items, dict):
+            print("we are in get wals")
+
+            print("check " + str(first_items))
+            all_wall_man[collection_name] = WalManInterface(self.wal_in, self.explorer_url, first_items, to_remove, None ,collection=collection_name)
+        
+            ret[collection_name] = all_wall_man[collection_name].fund_offline_wallets()
+            all_wall_man[collection_name].start_utxo_manager(30, 100)
+
+        return ret
+
     def send_batch(self, item, collection_name):
         print("start send")
+        
+
         self.all_wall_man = self.get_wals(item, self.wal_in, self.node_rpc, collection_name)
         
         print("end get wals")
@@ -97,8 +128,15 @@ class BlockNotify:
 
         tx_obj, unique_attribute = obj_parser.preprocess_save(item)
         
+        print("#### UNIQUE #####")
+        print(unique_attribute)
+        print("#################")
+
         print("parse end")
         tx_obj = obj_parser.parse_obj(tx_obj)
+
+        print(f"tx_obj: {tx_obj}")
+
         print(self.all_wall_man)
         
 

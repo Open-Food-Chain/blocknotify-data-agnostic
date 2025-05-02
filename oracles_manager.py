@@ -239,11 +239,18 @@ class OraclesManager:
 
         stored_value = self.get_oracles_json( address_book_txid )
 
+        print("STORED VALUES")
+        print(stored_value)
+
+        # TODO: HIER ERGENS GAAT HET FOUT
+
         if stored_value == None:
             ret = self.publish_json_to_oracle(address_book_txid, key_addr)
             return "stored: " + key_addr
 
         print(field_names)
+
+        del field_names['unique_value']
 
         for key in field_names:
             if key not in key_addr:
