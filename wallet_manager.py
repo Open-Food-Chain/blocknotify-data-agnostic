@@ -247,33 +247,37 @@ class WalletManager:
 
 
     def _fund_offline_wallets(self):
-    	# Original implementation of fund_offline_wallets
-    	to_addrs = []
-    	amounts = []
+        # Original implementation of fund_offline_wallets
+        to_addrs = []
+        amounts = []
 
-    	print(self.key_wallets)
+        print(self.key_wallets)
 
 
-    	for key in self.key_wallets:
+        for key in self.key_wallets:
 
-    		print(self.key_wallets[key].get_utxos())
-    		print(to_addrs)
-    		print(amounts)
-    		print(self.key_wallets[key].get_address())
+            print(self.key_wallets[key].get_utxos())
+            print(to_addrs)
+            print(amounts)
+            print(self.key_wallets[key].get_address())
 
-    		if len(self.key_wallets[key].get_utxos()) < 40:
-    			to_addrs.append(self.key_wallets[key].get_address())
-    			amounts.append(2)
+            if len(self.key_wallets[key].get_utxos()) < 20:
+                print("UTXOS TOO LITTLE")
+                print(f"Addr: {self.key_wallets[key].get_address()}")
+                print(len(self.key_wallets[key].get_utxos()))
 
-    	if len(to_addrs) != 0:
-    		print("try to send from:")
-    		print(self.org_wal.get_address())
-    		res = self.org_wal.send_tx_force(to_addrs, amounts)['txid']
+                to_addrs.append(self.key_wallets[key].get_address())
+                amounts.append(2)
 
-    		print(res)
-    		return txid
+        if len(to_addrs) != 0:
+            print("try to send from:")
+            print(self.org_wal.get_address())
+            res = self.org_wal.send_tx_force(to_addrs, amounts)['txid']
 
-    	return "fully funded"
+            print(res)
+            return txid
+
+        return "fully funded"
 
     def fund_offline_wallets(self):
     	# Pre-processing or additional checks
@@ -391,15 +395,16 @@ class WalletManager:
             if send_amounts:
                 if isinstance(send_amounts[0], str):
                     if key.startswith("reverse_"):
-                        to_addr = self.convert_ascii_to_hex(to_addr)
-                        send_amounts = bytes.fromhex(send_amounts).decode('ascii')
+                        print(f"before convert: {to_addr}")
+                        to_addr_temp = self.convert_ascii_to_hex(to_addr)
+                        send_amounts_temp = bytes.fromhex(send_amounts).decode('ascii')
 
                         print(f"KEY: {key}")
-                        print(f"Amounts: {send_amounts}")
-                        print(f"to_addr: {to_addr}")
+                        print(f"Amounts: {send_amounts_temp}")
+                        print(f"to_addr: {to_addr_temp}")
                         print("---------")
 
-                        txid = self.key_wallets[key].send_tx_opreturn(send_amounts, to_addr)
+                        txid = self.key_wallets[key].send_tx_opreturn(send_amounts_temp, to_addr_temp)
                         tx_ids[key] = txid
                     else:
                         txid = self.key_wallets[key].send_tx_opreturn(to_addr, send_amounts)
