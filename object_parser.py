@@ -171,6 +171,8 @@ class ObjectParser:
                         val = str(val)
                         addr, pub = WalletManager.create_batch_address(val)
                         ret_val.append(addr)
+
+                    ret_val = str(ret_val)
                 else:
                     print("actual value:")
                     print(actual_value)		
@@ -188,6 +190,8 @@ class ObjectParser:
                         val = str(val)
                         addr, pub = WalletManager.create_batch_address(val)
                         ret_val.append(addr)
+                        
+                    ret_val = str(ret_val)
                 else:
                     print("actual value:")
                     print(actual_value)     
