@@ -256,12 +256,17 @@ class WalletManager:
 
         for key in self.key_wallets:
 
+
+            print(f"For KEY: {key}")
             print(self.key_wallets[key].get_utxos())
             print(to_addrs)
             print(amounts)
             print(self.key_wallets[key].get_address())
+            print(self.key_wallets[key].get_balance())
 
-            if len(self.key_wallets[key].get_utxos()) < 20:
+
+            # 250000000 sats == 25 coins
+            if len(self.key_wallets[key].get_utxos()) < 20 or self.key_wallets[key].get_balance() < 250000000: 
                 print("UTXOS TOO LITTLE")
                 print(f"Addr: {self.key_wallets[key].get_address()}")
                 print(len(self.key_wallets[key].get_utxos()))
@@ -350,23 +355,25 @@ class WalletManager:
 
 
     def send_batch_transaction_flat(self, tx_obj, batch_value):
-    	print(tx_obj)
+        print(tx_obj)
 
-    	# Preprocessing: Remove keys with value 0
-    	tx_obj = {k: v for k, v in tx_obj.items() if v != [0]}
+        # Preprocessing: Remove keys with value 0
+        tx_obj = {k: v for k, v in tx_obj.items() if v != [0]}
 
-    	print(tx_obj)
+        print(tx_obj)
 
-    	# Call the original send_batch_transaction logic
-    	tx_ids = self._send_batch_transaction(tx_obj, batch_value)
+        # Call the original send_batch_transaction logic
+        tx_ids = self._send_batch_transaction(tx_obj, batch_value)
 
-    	# Postprocessing: Check if any of the returned keys have None as value
-    	if any(value is None for value in tx_ids.values()):
-    		self.fund_offline_wallets()
-    		print(tx_ids)
-    		return "Error: Not enought utxos, funding already activated, please wait"
+        print(f"!! txids: {tx_ids}")
 
-    	return tx_ids
+        # Postprocessing: Check if any of the returned keys have None as value
+        if any(value is None for value in tx_ids.values()):
+        	self.fund_offline_wallets()
+        	print(tx_ids)
+        	return "Error: Not enought utxos, funding already activated, please wait"
+
+        return tx_ids
 
     def convert_ascii_to_hex(self, string):
         hex_str = binascii.hexlify(string.encode()).decode()
@@ -383,6 +390,8 @@ class WalletManager:
         for key in self.key_wallets:
             send_addrs = []
             send_amounts = []
+
+            print(f"!! KEY: {key}")
 
             try:
                 if key in tx_obj:
@@ -415,7 +424,9 @@ class WalletManager:
                         send_addrs.append(to_addr)
 
                     print("-- normal tx --")
+                    print(f"send amounts {send_amounts}")
                     try:
+
                         txid = self.key_wallets[key].send_tx_force(send_addrs, send_amounts)	
                         tx_ids[key] = txid
                     except Exception as e:
