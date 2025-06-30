@@ -345,12 +345,12 @@ class ObjectParser:
         if not isinstance(string, str):
             string = str(string)
 
-    	hex_str = binascii.hexlify(string.encode()).decode()
+        hex_str = binascii.hexlify(string.encode()).decode()
 
-    	if len(hex_str) % 2 == 1:
-    		hex_str = "0" + hex_str
+        if len(hex_str) % 2 == 1:
+            hex_str = "0" + hex_str
 
-    	return hex_str
+        return hex_str
 
     def convert_ascii_string_to_bytes(self, string):
     	byte_value = string.encode('utf-8')
