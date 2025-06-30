@@ -341,6 +341,10 @@ class ObjectParser:
     	return 2
 
     def convert_ascii_to_hex(self, string):
+
+        if not isinstance(string, str):
+            string = str(string)
+
     	hex_str = binascii.hexlify(string.encode()).decode()
 
     	if len(hex_str) % 2 == 1:
