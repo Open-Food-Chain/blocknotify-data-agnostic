@@ -306,7 +306,7 @@ class ObjectParser:
     		return False  # Not a dictionary (JSON object)
 
     	for key, value in json_obj.items():
-    		if isinstance(value, (dict, list)):
+    		if isinstance(value, (dict)):
     			return False  # Nested object or array found
 
     	return True
