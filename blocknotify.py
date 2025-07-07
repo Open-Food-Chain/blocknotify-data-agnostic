@@ -76,7 +76,7 @@ class BlockNotify:
 
         for key in first_items.copy():
             if 'address' in first_items[key]:
-                if first_items[key]['address'] == True:
+                if first_items[key]['address'] == True and first_items[key].get('one_to_many', False) == False:
                     new_key = "reverse_" + key
 
                     obj = first_items[key]
@@ -84,6 +84,7 @@ class BlockNotify:
                     obj['reverse_address'] = True
 
                     first_items[new_key] = obj
+
 
 
         if isinstance(first_items, dict):
